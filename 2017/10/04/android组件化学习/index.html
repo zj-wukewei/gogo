@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Android," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="网上关于组件化的文章有很多了，大部分都知道实现的思路，不过还是要自己去实践一下才会发现问题。文章的项目地址，项目用到CleanArchitecture框架，本文会介绍CleanArchitecture框架和dagger2在组件化的使用。 项目关系图 sdk:  一些公用库，各种辅助类，和第三方viewbasic:  (依赖sdk) 网络访问初始化，本地缓存和第三方包等。commonbusiness">
+<meta name="keywords" content="Android">
+<meta property="og:type" content="article">
+<meta property="og:title" content="android组件化学习">
+<meta property="og:url" content="http://yoursite.com/2017/10/04/android组件化学习/index.html">
+<meta property="og:site_name" content="GoGo&#39;s home">
+<meta property="og:description" content="网上关于组件化的文章有很多了，大部分都知道实现的思路，不过还是要自己去实践一下才会发现问题。文章的项目地址，项目用到CleanArchitecture框架，本文会介绍CleanArchitecture框架和dagger2在组件化的使用。 项目关系图 sdk:  一些公用库，各种辅助类，和第三方viewbasic:  (依赖sdk) 网络访问初始化，本地缓存和第三方包等。commonbusiness">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1353151-465fd79c815487c7.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:updated_time" content="2017-10-04T02:14:13.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="android组件化学习">
+<meta name="twitter:description" content="网上关于组件化的文章有很多了，大部分都知道实现的思路，不过还是要自己去实践一下才会发现问题。文章的项目地址，项目用到CleanArchitecture框架，本文会介绍CleanArchitecture框架和dagger2在组件化的使用。 项目关系图 sdk:  一些公用库，各种辅助类，和第三方viewbasic:  (依赖sdk) 网络访问初始化，本地缓存和第三方包等。commonbusiness">
+<meta name="twitter:image" content="http://upload-images.jianshu.io/upload_images/1353151-465fd79c815487c7.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/10/04/android组件化学习/"/>
+
+
+
+
+
+  <title>android组件化学习 | GoGo's home</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">GoGo's home</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/10/04/android组件化学习/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="GoGo (吴克伟)">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GoGo's home">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">android组件化学习</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-04T10:11:25+08:00">
+                2017-10-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>网上关于组件化的文章有很多了，大部分都知道实现的思路，不过还是要自己去实践一下才会发现问题。文章的<a href="https://github.com/zj-wukewei/ModularizationExample" target="_blank" rel="external">项目地址</a>，项目用到CleanArchitecture框架，本文会介绍CleanArchitecture框架和dagger2在组件化的使用。</p>
+<h3 id="项目关系图"><a href="#项目关系图" class="headerlink" title="项目关系图"></a>项目关系图</h3><p><img src="http://upload-images.jianshu.io/upload_images/1353151-465fd79c815487c7.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="关系图.png"></p>
+<p>sdk:  一些公用库，各种辅助类，和第三方view<br>basic:  (依赖sdk) 网络访问初始化，本地缓存和第三方包等。<br>commonbusiness:  (依赖basic) 这里为什么我会多出这一层，因为有很多公共的业务，好比公司的app是强登录的，我会把登录模块写在这里，里面也包含了一些baseActivity和BaseApplication和各个组件的一些公共方法还有组件各种的服务接口的定义。<br>module_archives和module_knowledge： 就是两个组件，可以单独运行。</p>
+<h4 id="application和library切换"><a href="#application和library切换" class="headerlink" title="application和library切换"></a>application和library切换</h4><p>想必大家都知道了，定义一个isBuildModule=false，在组件的build.gradle中加入</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line">if (isBuildModule.toBoolean()) &#123;</div><div class="line">    apply plugin: &apos;com.android.application&apos;</div><div class="line">&#125; else &#123;</div><div class="line">    apply plugin: &apos;com.android.library&apos;</div><div class="line">    apply from: &apos;maven-release-kline-aar.gradle&apos;</div><div class="line">&#125;</div><div class="line"></div><div class="line"> sourceSets &#123;</div><div class="line">        main &#123;</div><div class="line">            if (isBuildModule.toBoolean()) &#123;</div><div class="line">                manifest.srcFile &apos;src/main/debug/AndroidManifest.xml&apos;</div><div class="line">            &#125; else &#123;</div><div class="line">                manifest.srcFile &apos;src/main/release/AndroidManifest.xml&apos;</div><div class="line">                java &#123;</div><div class="line">                    exclude &apos;**/debug/**&apos;</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>maven-release-kline-aar.gradle是一个打包aar的文件，在切换的时候也会使用不同的AndroidManifest.xml，因为在组件是debug的时候它是单独单独运行的，还有就是代码可以在建立一个debug包，可以在单独运行的时候做些初始化app的，打包的时候回剔除这部分代码。</p>
+<h4 id="library依赖和资源问题"><a href="#library依赖和资源问题" class="headerlink" title="library依赖和资源问题"></a>library依赖和资源问题</h4><p>我把所以的library都依赖在basic，每个组件都会依赖这个包，这样就不会存在library的版本问题，资源的问题就是</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">defaultConfig &#123;</div><div class="line"></div><div class="line">       if (isBuildModule.toBoolean()) &#123;</div><div class="line">           applicationId &quot;com.wkw.archives&quot;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       minSdkVersion rootProject.ext.minSdkVersion</div><div class="line">       targetSdkVersion rootProject.ext.targetSdkVersion</div><div class="line">       versionCode rootProject.ext.versionCode</div><div class="line">       versionName rootProject.ext.versionName</div><div class="line"></div><div class="line">       testInstrumentationRunner &quot;android.support.test.runner.AndroidJUnitRunner&quot;</div><div class="line"></div><div class="line">       resourcePrefix &quot;archives&quot;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<h4 id="组件之间的通信"><a href="#组件之间的通信" class="headerlink" title="组件之间的通信"></a>组件之间的通信</h4><p>你可以选择阿里的<a href="https://github.com/alibaba/ARouter" target="_blank" rel="external">ARouter</a>库，但是我的项目没有那么复杂，组件也就4个左右，所以没有使用阿里的库，我采用的是以下就是核心代码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">Object result = null;</div><div class="line">Class&lt;?&gt; c = Class.forName(className);</div><div class="line">if (c != null) &#123;</div><div class="line">    result = c.newInstance();</div><div class="line">&#125;</div><div class="line">return result;</div></pre></td></tr></table></figure>
+<p>但是采用Class.forName会有个问题那就是在混淆的时候，className是指定的，所以要在类上加@Keep 。</p>
+<h4 id="CleanArchitecture框架和dagger在组件化的使用"><a href="#CleanArchitecture框架和dagger在组件化的使用" class="headerlink" title="CleanArchitecture框架和dagger在组件化的使用"></a>CleanArchitecture框架和dagger在组件化的使用</h4><p><a href="https://github.com/android10/Android-CleanArchitecture" target="_blank" rel="external">CleanArchitecture框架的github地址</a>，这里再介绍分享一篇文章<a href="http://www.jianshu.com/u/df40282480b4" target="_blank" rel="external">小鄧子</a>的<a href="http://www.jianshu.com/p/3edcf85539a6" target="_blank" rel="external">Easy Clean architecture on Android</a>,我把data和domain会写在各自的业务模块中，自己的模块只要定义自己的就可以了，有个ApplicationModule会定义一些每个模块都需要的</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div></pre></td><td class="code"><pre><div class="line">public class ApplicationModule &#123;</div><div class="line"></div><div class="line">    @Provides</div><div class="line">    @Singleton</div><div class="line">    Context provideContext(Application application) &#123;</div><div class="line">        return application;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Provides</div><div class="line">    @Singleton</div><div class="line">    UserSystem provideUserSystem() &#123;</div><div class="line">        return new UserSystem();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Provides</div><div class="line">    @Singleton</div><div class="line">    ThreadExecutor provideThreadExecutor(JobExecutor jobExecutor) &#123;</div><div class="line">        return jobExecutor;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Provides</div><div class="line">    @Singleton</div><div class="line">    PostExecutionThread providePostExecutionThread(UIThread uiThread) &#123;</div><div class="line">        return uiThread;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Provides</div><div class="line">    @Singleton</div><div class="line">    MrService provideMrService() &#123;</div><div class="line">        return new MrService();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Provides</div><div class="line">    @Singleton</div><div class="line">    UserCache provideUserCache(UserCacheImpl userCache) &#123;</div><div class="line">        return userCache;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>然后在module_archives模块中会有ArchivesDataRepositoryModule和ArchivesActivityModule<br>其中KnowledgeDataRepositoryModule用于提供如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">@Module</div><div class="line">public class ArchivesDataRepositoryModule &#123;</div><div class="line"></div><div class="line">    @Provides</div><div class="line">    @Singleton</div><div class="line">    ArchivesApi providesArchivesApi(MrService mrService) &#123;</div><div class="line">        return mrService.createApi(ArchivesApi.class);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Provides</div><div class="line">    @Singleton</div><div class="line">    ArchivesRepository prvidesArchivesRepository(ArchivesDataRepository archivesDataRepository) &#123;</div><div class="line">        return archivesDataRepository;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>ArchivesActivityModule的代码如下：</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">@Module</div><div class="line">public abstract class ArchivesActivityModule &#123;</div><div class="line">    @PerActivity</div><div class="line">    @ContributesAndroidInjector()</div><div class="line">    abstract ArchivesActivity contributeArchivesActivity();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这样在主app的AppComponent类中加入：</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">@Singleton</div><div class="line">@Component(modules = &#123;</div><div class="line">        AndroidInjectionModule.class, ApplicationModule.class,</div><div class="line">        ArchivesDataRepositoryModule.class, ArchivesActivityModule.class,</div><div class="line">        KnowledgeDataRepositoryModule.class, KnowledgeActivityModule.class</div><div class="line">&#125;)</div><div class="line">public interface AppComponent &#123;</div><div class="line">    @Component.Builder</div><div class="line">    interface Builder &#123;</div><div class="line">        @BindsInstance</div><div class="line">        Builder application(Application application);</div><div class="line">        AppComponent build();</div><div class="line">    &#125;</div><div class="line">    void inject(MrApplication mrApplication);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>在module_archives为debug模式下也会有个AppComponent</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">@Singleton</div><div class="line">@Component(modules = &#123;</div><div class="line">        AndroidInjectionModule.class, ApplicationModule.class,</div><div class="line">        ArchivesDataRepositoryModule.class, ArchivesActivityModule.class</div><div class="line">&#125;)</div><div class="line">public interface AppComponent &#123;</div><div class="line">    @Component.Builder</div><div class="line">    interface Builder &#123;</div><div class="line">        @BindsInstance</div><div class="line">        Builder application(Application application);</div><div class="line">        AppComponent build();</div><div class="line">    &#125;</div><div class="line">    void inject(ArchivesApplication mrApplication);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>各种模块初始化api和Repository，你要是嫌弃每个模块都要引入两个.class文件，你可以使用一个然后采用include的方式好比dagger中的AndroidSupportInjectionModule类方式</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">@Beta</div><div class="line">@Module(includes = AndroidInjectionModule.class)</div><div class="line">public abstract class AndroidSupportInjectionModule &#123;</div><div class="line">  @Multibinds</div><div class="line">  abstract Map&lt;Class&lt;? extends Fragment&gt;, AndroidInjector.Factory&lt;? extends Fragment&gt;&gt;</div><div class="line">      supportFragmentInjectorFactories();</div><div class="line"></div><div class="line">  private AndroidSupportInjectionModule() &#123;&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这样就会很清楚的知道自己模块需要初始化什么和使用什么，也不用考虑其它模块的初始化的数据，之后只需要在主app加入就行，也是比较方便的。</p>
+<h4 id="打包"><a href="#打包" class="headerlink" title="打包"></a>打包</h4><p>各种模块当为library是要打包成aar的，maven-release-kline-aar.gradle文件代码如下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line">apply plugin: &apos;maven&apos;</div><div class="line"></div><div class="line">ext &#123;// ext is a gradle closure allowing the declaration of global properties</div><div class="line">    PUBLISH_GROUP_ID = &apos;com.wkw&apos;</div><div class="line">    PUBLISH_ARTIFACT_ID = &apos;archives&apos;</div><div class="line">    PUBLISH_VERSION = rootProject.ext.versionName</div><div class="line">&#125;</div><div class="line"></div><div class="line">uploadArchives &#123;</div><div class="line">    repositories.mavenDeployer &#123;</div><div class="line">        //这里就是最后输出地址，在自己电脑上新建个文件夹，把文件夹路径粘贴在此</div><div class="line">        //注意”file://“ + 路径，有三个斜杠，别漏了</div><div class="line">        repository(url: &quot;file:///Users/wukewei/Documents/android/ModularizationExample/repo&quot;)</div><div class="line"></div><div class="line">        pom.project &#123;</div><div class="line">            groupId project.PUBLISH_GROUP_ID</div><div class="line">            artifactId project.PUBLISH_ARTIFACT_ID</div><div class="line">            version project.PUBLISH_VERSION</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">//以下代码会生成jar包源文件，如果是不开源码，请不要输入这段</div><div class="line">//aar包内包含注释</div><div class="line">task androidSourcesJar(type: Jar) &#123;</div><div class="line">    classifier = &apos;sources&apos;</div><div class="line">    from android.sourceSets.main.java.sourceFiles</div><div class="line">&#125;</div><div class="line"></div><div class="line">artifacts &#123;</div><div class="line">    archives androidSourcesJar</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>我只是打包到本地，你可以自己建立一个本地maven库。</p>
+<h4 id="如要改进的地方"><a href="#如要改进的地方" class="headerlink" title="如要改进的地方"></a>如要改进的地方</h4><p>1：每次建立一个模块还是要做很多初始化的工作<br>2：maven-release-kline-aar.gradle每个模块都会有，希望后期能改进。<br>3:  debug模式下各个模块登录之后跳转问题<br>4：等等。。。。。</p>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a href="http://blog.zhaiyifan.cn/2016/10/20/android-new-project-from-0-p11/" target="_blank" rel="external">从零开始的Android新项目11 - 组件化实践（1）</a> -<br> 大帅</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Android/" rel="tag"># Android</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/10/04/Kotlin学习之hot-kotlin/" rel="next" title="Kotlin学习之hot_kotlin">
+                <i class="fa fa-chevron-left"></i> Kotlin学习之hot_kotlin
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.png"
+                alt="GoGo (吴克伟)" />
+            
+              <p class="site-author-name" itemprop="name">GoGo (吴克伟)</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">9</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/zj-wukewei" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="http://www.jianshu.com/u/80402b2535d3" target="_blank" title="简书">
+                    
+                      <i class="fa fa-fw fa-简书"></i>简书</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#项目关系图"><span class="nav-number">1.</span> <span class="nav-text">项目关系图</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#application和library切换"><span class="nav-number">1.1.</span> <span class="nav-text">application和library切换</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#library依赖和资源问题"><span class="nav-number">1.2.</span> <span class="nav-text">library依赖和资源问题</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#组件之间的通信"><span class="nav-number">1.3.</span> <span class="nav-text">组件之间的通信</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#CleanArchitecture框架和dagger在组件化的使用"><span class="nav-number">1.4.</span> <span class="nav-text">CleanArchitecture框架和dagger在组件化的使用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#打包"><span class="nav-number">1.5.</span> <span class="nav-text">打包</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#如要改进的地方"><span class="nav-number">1.6.</span> <span class="nav-text">如要改进的地方</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考"><span class="nav-number">2.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">GoGo (吴克伟)</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

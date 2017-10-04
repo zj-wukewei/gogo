@@ -229,6 +229,458 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/10/04/android组件化学习/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="GoGo (吴克伟)">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GoGo's home">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/10/04/android组件化学习/" itemprop="url">android组件化学习</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-04T10:11:25+08:00">
+                2017-10-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>网上关于组件化的文章有很多了，大部分都知道实现的思路，不过还是要自己去实践一下才会发现问题。文章的<a href="https://github.com/zj-wukewei/ModularizationExample" target="_blank" rel="external">项目地址</a>，项目用到CleanArchitecture框架，本文会介绍CleanArchitecture框架和dagger2在组件化的使用。</p>
+<h3 id="项目关系图"><a href="#项目关系图" class="headerlink" title="项目关系图"></a>项目关系图</h3><p><img src="http://upload-images.jianshu.io/upload_images/1353151-465fd79c815487c7.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="关系图.png"></p>
+<p>sdk:  一些公用库，各种辅助类，和第三方view<br>basic:  (依赖sdk) 网络访问初始化，本地缓存和第三方包等。<br>commonbusiness:  (依赖basic) 这里为什么我会多出这一层，因为有很多公共的业务，好比公司的app是强登录的，我会把登录模块写在这里，里面也包含了一些baseActivity和BaseApplication和各个组件的一些公共方法还有组件各种的服务接口的定义。<br>module_archives和module_knowledge： 就是两个组件，可以单独运行。</p>
+<h4 id="application和library切换"><a href="#application和library切换" class="headerlink" title="application和library切换"></a>application和library切换</h4><p>想必大家都知道了，定义一个isBuildModule=false，在组件的build.gradle中加入</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line">if (isBuildModule.toBoolean()) &#123;</div><div class="line">    apply plugin: &apos;com.android.application&apos;</div><div class="line">&#125; else &#123;</div><div class="line">    apply plugin: &apos;com.android.library&apos;</div><div class="line">    apply from: &apos;maven-release-kline-aar.gradle&apos;</div><div class="line">&#125;</div><div class="line"></div><div class="line"> sourceSets &#123;</div><div class="line">        main &#123;</div><div class="line">            if (isBuildModule.toBoolean()) &#123;</div><div class="line">                manifest.srcFile &apos;src/main/debug/AndroidManifest.xml&apos;</div><div class="line">            &#125; else &#123;</div><div class="line">                manifest.srcFile &apos;src/main/release/AndroidManifest.xml&apos;</div><div class="line">                java &#123;</div><div class="line">                    exclude &apos;**/debug/**&apos;</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>maven-release-kline-aar.gradle是一个打包aar的文件，在切换的时候也会使用不同的AndroidManifest.xml，因为在组件是debug的时候它是单独单独运行的，还有就是代码可以在建立一个debug包，可以在单独运行的时候做些初始化app的，打包的时候回剔除这部分代码。</p>
+<h4 id="library依赖和资源问题"><a href="#library依赖和资源问题" class="headerlink" title="library依赖和资源问题"></a>library依赖和资源问题</h4><p>我把所以的library都依赖在basic，每个组件都会依赖这个包，这样就不会存在library的版本问题，资源的问题就是</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">defaultConfig &#123;</div><div class="line"></div><div class="line">       if (isBuildModule.toBoolean()) &#123;</div><div class="line">           applicationId &quot;com.wkw.archives&quot;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       minSdkVersion rootProject.ext.minSdkVersion</div><div class="line">       targetSdkVersion rootProject.ext.targetSdkVersion</div><div class="line">       versionCode rootProject.ext.versionCode</div><div class="line">       versionName rootProject.ext.versionName</div><div class="line"></div><div class="line">       testInstrumentationRunner &quot;android.support.test.runner.AndroidJUnitRunner&quot;</div><div class="line"></div><div class="line">       resourcePrefix &quot;archives&quot;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<h4 id="组件之间的通信"><a href="#组件之间的通信" class="headerlink" title="组件之间的通信"></a>组件之间的通信</h4><p>你可以选择阿里的<a href="https://github.com/alibaba/ARouter" target="_blank" rel="external">ARouter</a>库，但是我的项目没有那么复杂，组件也就4个左右，所以没有使用阿里的库，我采用的是以下就是核心代码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">Object result = null;</div><div class="line">Class&lt;?&gt; c = Class.forName(className);</div><div class="line">if (c != null) &#123;</div><div class="line">    result = c.newInstance();</div><div class="line">&#125;</div><div class="line">return result;</div></pre></td></tr></table></figure>
+<p>但是采用Class.forName会有个问题那就是在混淆的时候，className是指定的，所以要在类上加@Keep 。</p>
+<h4 id="CleanArchitecture框架和dagger在组件化的使用"><a href="#CleanArchitecture框架和dagger在组件化的使用" class="headerlink" title="CleanArchitecture框架和dagger在组件化的使用"></a>CleanArchitecture框架和dagger在组件化的使用</h4><p><a href="https://github.com/android10/Android-CleanArchitecture" target="_blank" rel="external">CleanArchitecture框架的github地址</a>，这里再介绍分享一篇文章<a href="http://www.jianshu.com/u/df40282480b4" target="_blank" rel="external">小鄧子</a>的<a href="http://www.jianshu.com/p/3edcf85539a6" target="_blank" rel="external">Easy Clean architecture on Android</a>,我把data和domain会写在各自的业务模块中，自己的模块只要定义自己的就可以了，有个ApplicationModule会定义一些每个模块都需要的</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div></pre></td><td class="code"><pre><div class="line">public class ApplicationModule &#123;</div><div class="line"></div><div class="line">    @Provides</div><div class="line">    @Singleton</div><div class="line">    Context provideContext(Application application) &#123;</div><div class="line">        return application;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Provides</div><div class="line">    @Singleton</div><div class="line">    UserSystem provideUserSystem() &#123;</div><div class="line">        return new UserSystem();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Provides</div><div class="line">    @Singleton</div><div class="line">    ThreadExecutor provideThreadExecutor(JobExecutor jobExecutor) &#123;</div><div class="line">        return jobExecutor;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Provides</div><div class="line">    @Singleton</div><div class="line">    PostExecutionThread providePostExecutionThread(UIThread uiThread) &#123;</div><div class="line">        return uiThread;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Provides</div><div class="line">    @Singleton</div><div class="line">    MrService provideMrService() &#123;</div><div class="line">        return new MrService();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Provides</div><div class="line">    @Singleton</div><div class="line">    UserCache provideUserCache(UserCacheImpl userCache) &#123;</div><div class="line">        return userCache;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>然后在module_archives模块中会有ArchivesDataRepositoryModule和ArchivesActivityModule<br>其中KnowledgeDataRepositoryModule用于提供如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">@Module</div><div class="line">public class ArchivesDataRepositoryModule &#123;</div><div class="line"></div><div class="line">    @Provides</div><div class="line">    @Singleton</div><div class="line">    ArchivesApi providesArchivesApi(MrService mrService) &#123;</div><div class="line">        return mrService.createApi(ArchivesApi.class);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Provides</div><div class="line">    @Singleton</div><div class="line">    ArchivesRepository prvidesArchivesRepository(ArchivesDataRepository archivesDataRepository) &#123;</div><div class="line">        return archivesDataRepository;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>ArchivesActivityModule的代码如下：</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">@Module</div><div class="line">public abstract class ArchivesActivityModule &#123;</div><div class="line">    @PerActivity</div><div class="line">    @ContributesAndroidInjector()</div><div class="line">    abstract ArchivesActivity contributeArchivesActivity();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这样在主app的AppComponent类中加入：</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">@Singleton</div><div class="line">@Component(modules = &#123;</div><div class="line">        AndroidInjectionModule.class, ApplicationModule.class,</div><div class="line">        ArchivesDataRepositoryModule.class, ArchivesActivityModule.class,</div><div class="line">        KnowledgeDataRepositoryModule.class, KnowledgeActivityModule.class</div><div class="line">&#125;)</div><div class="line">public interface AppComponent &#123;</div><div class="line">    @Component.Builder</div><div class="line">    interface Builder &#123;</div><div class="line">        @BindsInstance</div><div class="line">        Builder application(Application application);</div><div class="line">        AppComponent build();</div><div class="line">    &#125;</div><div class="line">    void inject(MrApplication mrApplication);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>在module_archives为debug模式下也会有个AppComponent</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">@Singleton</div><div class="line">@Component(modules = &#123;</div><div class="line">        AndroidInjectionModule.class, ApplicationModule.class,</div><div class="line">        ArchivesDataRepositoryModule.class, ArchivesActivityModule.class</div><div class="line">&#125;)</div><div class="line">public interface AppComponent &#123;</div><div class="line">    @Component.Builder</div><div class="line">    interface Builder &#123;</div><div class="line">        @BindsInstance</div><div class="line">        Builder application(Application application);</div><div class="line">        AppComponent build();</div><div class="line">    &#125;</div><div class="line">    void inject(ArchivesApplication mrApplication);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>各种模块初始化api和Repository，你要是嫌弃每个模块都要引入两个.class文件，你可以使用一个然后采用include的方式好比dagger中的AndroidSupportInjectionModule类方式</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">@Beta</div><div class="line">@Module(includes = AndroidInjectionModule.class)</div><div class="line">public abstract class AndroidSupportInjectionModule &#123;</div><div class="line">  @Multibinds</div><div class="line">  abstract Map&lt;Class&lt;? extends Fragment&gt;, AndroidInjector.Factory&lt;? extends Fragment&gt;&gt;</div><div class="line">      supportFragmentInjectorFactories();</div><div class="line"></div><div class="line">  private AndroidSupportInjectionModule() &#123;&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这样就会很清楚的知道自己模块需要初始化什么和使用什么，也不用考虑其它模块的初始化的数据，之后只需要在主app加入就行，也是比较方便的。</p>
+<h4 id="打包"><a href="#打包" class="headerlink" title="打包"></a>打包</h4><p>各种模块当为library是要打包成aar的，maven-release-kline-aar.gradle文件代码如下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line">apply plugin: &apos;maven&apos;</div><div class="line"></div><div class="line">ext &#123;// ext is a gradle closure allowing the declaration of global properties</div><div class="line">    PUBLISH_GROUP_ID = &apos;com.wkw&apos;</div><div class="line">    PUBLISH_ARTIFACT_ID = &apos;archives&apos;</div><div class="line">    PUBLISH_VERSION = rootProject.ext.versionName</div><div class="line">&#125;</div><div class="line"></div><div class="line">uploadArchives &#123;</div><div class="line">    repositories.mavenDeployer &#123;</div><div class="line">        //这里就是最后输出地址，在自己电脑上新建个文件夹，把文件夹路径粘贴在此</div><div class="line">        //注意”file://“ + 路径，有三个斜杠，别漏了</div><div class="line">        repository(url: &quot;file:///Users/wukewei/Documents/android/ModularizationExample/repo&quot;)</div><div class="line"></div><div class="line">        pom.project &#123;</div><div class="line">            groupId project.PUBLISH_GROUP_ID</div><div class="line">            artifactId project.PUBLISH_ARTIFACT_ID</div><div class="line">            version project.PUBLISH_VERSION</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">//以下代码会生成jar包源文件，如果是不开源码，请不要输入这段</div><div class="line">//aar包内包含注释</div><div class="line">task androidSourcesJar(type: Jar) &#123;</div><div class="line">    classifier = &apos;sources&apos;</div><div class="line">    from android.sourceSets.main.java.sourceFiles</div><div class="line">&#125;</div><div class="line"></div><div class="line">artifacts &#123;</div><div class="line">    archives androidSourcesJar</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>我只是打包到本地，你可以自己建立一个本地maven库。</p>
+<h4 id="如要改进的地方"><a href="#如要改进的地方" class="headerlink" title="如要改进的地方"></a>如要改进的地方</h4><p>1：每次建立一个模块还是要做很多初始化的工作<br>2：maven-release-kline-aar.gradle每个模块都会有，希望后期能改进。<br>3:  debug模式下各个模块登录之后跳转问题<br>4：等等。。。。。</p>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a href="http://blog.zhaiyifan.cn/2016/10/20/android-new-project-from-0-p11/" target="_blank" rel="external">从零开始的Android新项目11 - 组件化实践（1）</a> -<br> 大帅</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/10/04/Kotlin学习之hot-kotlin/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="GoGo (吴克伟)">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GoGo's home">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/10/04/Kotlin学习之hot-kotlin/" itemprop="url">Kotlin学习之hot_kotlin</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-04T10:06:03+08:00">
+                2017-10-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>自从google IO大会之后，kotlin的热度一直在上升，<a href="http://kotlinlang.org/docs/reference/" target="_blank" rel="external">kotlin官方文档</a>，这里也有个中文的<a href="https://www.kotlincn.net/docs/reference/android-overview.html" target="_blank" rel="external">中文文档</a>，作为android开发也可以看<a href="https://antonioleiva.com/kotlin-android-developers/" target="_blank" rel="external">Kotlin for Android Developers </a>，接下来就说说在android方面的使用，记录一下自己的学习，大部分是通过Kotlin for Android Developers 学习到的。</p>
+<h3 id="Delegated-Properties的使用（委托属性"><a href="#Delegated-Properties的使用（委托属性" class="headerlink" title="Delegated Properties的使用（委托属性)"></a>Delegated Properties的使用（委托属性)</h3><p>（1）这里简单的说明一下：用var修饰的可变属性和由val修饰的只读属性。由val修饰的只读属性使用的委托需要实现ReadOnlyProperty，而var修饰的可变属性则需要实现ReadWriteProperty。在调用被委托的属性的getter和setter时，对应操作会被委托给getValue()以及setValue()。<br>因为我在项目中使用了dagger2所以在app上要初始化ApplicationComponent提供给其它的component作为依赖，</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div></pre></td><td class="code"><pre><div class="line">class HotApp : Application() &#123;</div><div class="line"></div><div class="line">    companion object &#123;</div><div class="line">        var graph: ApplicationComponent by DelegatesExt.notNullSingleValue()</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    override fun onCreate() &#123;</div><div class="line">        super.onCreate()</div><div class="line">        graph = DaggerApplicationComponent.builder()</div><div class="line">                .applicationModule(ApplicationModule(this))</div><div class="line">                .build()</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"></div><div class="line">object DelegatesExt &#123;</div><div class="line">    fun &lt;T&gt; notNullSingleValue() = NotNullSingleValueVar&lt;T&gt;()</div><div class="line">&#125;</div><div class="line"></div><div class="line">class NotNullSingleValueVar&lt;T&gt; &#123;</div><div class="line"></div><div class="line">    private var value: T? = null</div><div class="line"></div><div class="line">    operator fun getValue(thisRef: Any?, property: KProperty&lt;*&gt;): T &#123;</div><div class="line">        return value ?: throw IllegalStateException(&quot;$&#123;property.name&#125; not initialized&quot;)</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    operator fun setValue(thisRef: Any?, property: KProperty&lt;*&gt;, value: T) &#123;</div><div class="line">        this.value = if (this.value == null) value</div><div class="line">        else throw IllegalStateException(&quot;$&#123;property.name&#125; already initialized&quot;)</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>graph属性只会被初始化一次，当你还没有初始化就去使用和多次初始化会报IllegalStateException异常。其中最主要的是getValue和setValue方法。<br>thisRef —— 必须与 属性所有者 类型（对于扩展属性——指被扩展的类型）相同或者是它的超类型，<br>property —— 必须是类型 KProperty&lt;*&gt; 或其超类型，<br>这个函数必须返回与属性相同的类型（或其子类型），<br>new value —— 必须和属性同类型或者是它的超类型。</p>
+<p>（2）Lazy（延迟属性）</p>
+<p>大部分app都会使用到toolbar，这时候你可以使用个接口对其统一的处理</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">interface ToolbarManager &#123;</div><div class="line">    val toolbar: Toolbar</div><div class="line">    var toolbarTitle: String</div><div class="line">        get() = toolbar.title.toString()</div><div class="line">        set(value) &#123;</div><div class="line">            toolbar.title = value</div><div class="line">        &#125;</div><div class="line"></div><div class="line">    fun enableHomeAsUp(up: () -&gt; Unit) &#123;</div><div class="line">        toolbar.navigationIcon = createUpDrawable()</div><div class="line">        toolbar.setNavigationOnClickListener &#123; up() &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    private fun createUpDrawable() = DrawerArrowDrawable(toolbar.ctx).apply &#123; progress = 1f &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>使用的时候</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">class MainActivity : AppCompatActivity(), ToolbarManager &#123;</div><div class="line"></div><div class="line">    override val toolbar by lazy &#123;</div><div class="line">        tool_bar</div><div class="line">    &#125;</div><div class="line">...省略代码...</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>因为当你不使用lazy关键字的时候，因为view都还没有创建所以一定找不到的。</p>
+<p>（3）Observable（可观察属性）<br><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.properties/-delegates/observable.html" target="_blank" rel="external">Delegates.observable()
+</a></p>
+<p>接受两个参数：初始值和修改时处理程序（handler）， 每当我们给属性赋值时会调用该处理程序（在赋值<em>后</em>执行），它有三个参数：被赋值的属性、旧值和新值。在android使用就是adapter的使用</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">var populars: List&lt;PopularModel&gt; by Delegates.observable(emptyList()) &#123; _, _, _ -&gt; notifyDataSetChanged() &#125;</div></pre></td></tr></table></figure>
+<p>就是在adapter的populars属性变化的时候调用notifyDataSetChanged() 方法，后期为了为了学习DiffUtil加上了，把之前的代码去掉了，因为我的viewmodel是data类，会自动推断产生以下函数，equals()/hashCode() pair,toString()，componentN()，copy()这样就会方便使用。</p>
+<h3 id="Extensions（扩展函数）"><a href="#Extensions（扩展函数）" class="headerlink" title="Extensions（扩展函数）"></a>Extensions（扩展函数）</h3><p>用户经常会短时间多次点击按钮，所以我们可以对View进行扩展，</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">fun View.singleClick(l: (android.view.View?) -&gt; Unit) &#123;</div><div class="line">    setOnClickListener(SingleClickListener(</div><div class="line">    &#125;</div><div class="line"></div><div class="line">class SingleClickListener(val click: (v: View) -&gt; Unit) : View.OnClickListener &#123;</div><div class="line"></div><div class="line">    companion object &#123;</div><div class="line">        private val DOUBLE_CLICK_TIMEOUT = ViewConfiguration.getDoubleTapTimeout()</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    private var lastClick: Long = 0</div><div class="line"></div><div class="line">    override fun onClick(v: View) &#123;</div><div class="line">        if (getLastClickTimeout() &gt; DOUBLE_CLICK_TIMEOUT) &#123;</div><div class="line">            lastClick = System.currentTimeMillis()</div><div class="line">            click(v)</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    private fun getLastClickTimeout(): Long &#123;</div><div class="line">        return System.currentTimeMillis() - lastClick</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这样View就有singleClick()函数了，其实你对代码进行Bytecode会发现</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">public final class ViewExtensionsKt &#123;</div><div class="line">   public static final void singleClick(@NotNull View $receiver, @NotNull Function1 l) &#123;</div><div class="line">      Intrinsics.checkParameterIsNotNull($receiver, &quot;$receiver&quot;);</div><div class="line">      Intrinsics.checkParameterIsNotNull(l, &quot;l&quot;);</div><div class="line">      $receiver.setOnClickListener((OnClickListener)(new SingleClickListener(l)));</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这不就是java的静态方法，这样你就可以根据自己的项目要求去愉快的扩展了，Extensions are resolved statically，扩展函数是静态解析的。</p>
+<h3 id="inline-function（内联函数）"><a href="#inline-function（内联函数）" class="headerlink" title="inline function（内联函数）"></a>inline function（内联函数）</h3><p>以下代码来自anko，</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div></pre></td><td class="code"><pre><div class="line">inline fun &lt;reified T : Activity&gt; Context.startActivity(vararg params: Pair&lt;String, Any&gt;) &#123;</div><div class="line">    Internals.internalStartActivity(this, T::class.java, params)</div><div class="line">&#125;</div><div class="line">object Internals &#123;</div><div class="line">    @JvmStatic</div><div class="line">    fun internalStartActivity(</div><div class="line">            ctx: Context,</div><div class="line">            activity: Class&lt;out Activity&gt;,</div><div class="line">            params: Array&lt;out Pair&lt;String, Any&gt;&gt;</div><div class="line">    ) &#123;</div><div class="line">        ctx.startActivity(createIntent(ctx, activity, params))</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @JvmStatic</div><div class="line">    fun &lt;T&gt; createIntent(ctx: Context, clazz: Class&lt;out T&gt;, params: Array&lt;out Pair&lt;String, Any?&gt;&gt;): Intent &#123;</div><div class="line">        val intent = Intent(ctx, clazz)</div><div class="line">        if (params.isNotEmpty()) fillIntentArguments(intent, params)</div><div class="line">        return intent</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @JvmStatic</div><div class="line">    private fun fillIntentArguments(intent: Intent, params: Array&lt;out Pair&lt;String, Any?&gt;&gt;) &#123;</div><div class="line">        params.forEach &#123;</div><div class="line">            val value = it.second</div><div class="line">            when (value) &#123;</div><div class="line">                null -&gt; intent.putExtra(it.first, null as Serializable?)</div><div class="line">                is Int -&gt; intent.putExtra(it.first, value)</div><div class="line">                is Long -&gt; intent.putExtra(it.first, value)</div><div class="line">                is CharSequence -&gt; intent.putExtra(it.first, value)</div><div class="line">                is String -&gt; intent.putExtra(it.first, value)</div><div class="line">                is Float -&gt; intent.putExtra(it.first, value)</div><div class="line">                is Double -&gt; intent.putExtra(it.first, value)</div><div class="line">                is Char -&gt; intent.putExtra(it.first, value)</div><div class="line">                is Short -&gt; intent.putExtra(it.first, value)</div><div class="line">                is Boolean -&gt; intent.putExtra(it.first, value)</div><div class="line">                is Serializable -&gt; intent.putExtra(it.first, value)</div><div class="line">                is Bundle -&gt; intent.putExtra(it.first, value)</div><div class="line">                is Parcelable -&gt; intent.putExtra(it.first, value)</div><div class="line">                is Array&lt;*&gt; -&gt; when &#123;</div><div class="line">                    value.isArrayOf&lt;CharSequence&gt;() -&gt; intent.putExtra(it.first, value)</div><div class="line">                    value.isArrayOf&lt;String&gt;() -&gt; intent.putExtra(it.first, value)</div><div class="line">                    value.isArrayOf&lt;Parcelable&gt;() -&gt; intent.putExtra(it.first, value)</div><div class="line">                    else -&gt; throw RuntimeException(&quot;Intent extra $&#123;it.first&#125; has wrong type $&#123;value.javaClass.name&#125;&quot;)</div><div class="line">                &#125;</div><div class="line">                is IntArray -&gt; intent.putExtra(it.first, value)</div><div class="line">                is LongArray -&gt; intent.putExtra(it.first, value)</div><div class="line">                is FloatArray -&gt; intent.putExtra(it.first, value)</div><div class="line">                is DoubleArray -&gt; intent.putExtra(it.first, value)</div><div class="line">                is CharArray -&gt; intent.putExtra(it.first, value)</div><div class="line">                is ShortArray -&gt; intent.putExtra(it.first, value)</div><div class="line">                is BooleanArray -&gt; intent.putExtra(it.first, value)</div><div class="line">                else -&gt; throw RuntimeException(&quot;Intent extra $&#123;it.first&#125; has wrong type $&#123;value.javaClass.name&#125;&quot;)</div><div class="line">            &#125;</div><div class="line">            return@forEach</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这段代码包含的知识点很多，这里说一下reified修饰符“具体化”， 几乎就像是一个普通的类一样，正常的操作符如 !is 和 as 现在都能用了，在调用的时候要是具体的类型而不能是范型。</p>
+<h3 id="项目介绍：hot项目之前使用java的时候写过链接，这里就不再过多的介绍了，kotlin-hot地址-项目采用第三方框架如下："><a href="#项目介绍：hot项目之前使用java的时候写过链接，这里就不再过多的介绍了，kotlin-hot地址-项目采用第三方框架如下：" class="headerlink" title="项目介绍：hot项目之前使用java的时候写过链接，这里就不再过多的介绍了，kotlin_hot地址,项目采用第三方框架如下："></a>项目介绍：hot项目之前使用java的时候写过<a href="http://www.jianshu.com/p/b1da0387f805" target="_blank" rel="external">链接</a>，这里就不再过多的介绍了，<a href="https://github.com/zj-wukewei/Hot_Kotlin" target="_blank" rel="external">kotlin_hot地址</a>,项目采用第三方框架如下：</h3><ul>
+<li>Rxjava</li>
+<li>MVP</li>
+<li>Dagger2</li>
+<li>Retrofit</li>
+<li>OkHttp3</li>
+<li>Glide</li>
+<li>Kotlin<br>通过此次的学习自己也加深了对kotlin的理解，虽然还处于小白阶段，希望能帮助到你，要是有写的不对的地方望指出，一起学习进步。</li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/10/04/databinding和CleanArchitecture框架的使用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="GoGo (吴克伟)">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GoGo's home">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/10/04/databinding和CleanArchitecture框架的使用/" itemprop="url">databinding和CleanArchitecture框架的使用</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-04T09:55:24+08:00">
+                2017-10-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>最近在做一个公司内部的app，框架方面使用了CleanArchitecture，因为本身app的业务逻辑不是很复杂，所以在使用的时候我没有写presenter这一层，只有当页面逻辑比较复杂的时候还会去写presenter层，主要还是懒得去写那么多接口。</p>
+<h3 id="databinding的使用"><a href="#databinding的使用" class="headerlink" title="databinding的使用"></a>databinding的使用</h3><h4 id="textview"><a href="#textview" class="headerlink" title="textview"></a>textview</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">&lt;TextView</div><div class="line">            android:layout_width=&quot;60dp&quot;</div><div class="line">            android:layout_height=&quot;wrap_content&quot;</div><div class="line">            android:layout_marginLeft=&quot;20dp&quot;</div><div class="line">            android:text=&quot;@&#123;item.startedStatus&#125;&quot;</div><div class="line">            android:textColor=&quot;@color/dicuss_content_text_color&quot;</div><div class="line">            tools:text=&quot;启动状态&quot;/&gt;</div><div class="line"></div><div class="line">&lt;TextView</div><div class="line">    android:layout_width=&quot;wrap_content&quot;</div><div class="line">    android:layout_height=&quot;wrap_content&quot;</div><div class="line">    android:layout_marginLeft=&quot;8dp&quot;</div><div class="line">    android:text=&quot;@&#123;@string/monthperformance(totalContributionCount, totalInGroupCount)&#125;&quot;</div><div class="line">    android:textColor=&quot;@color/white&quot;</div><div class="line">    android:textSize=&quot;13sp&quot;</div><div class="line">    tools:text=&quot;总计：贡献额：3928191.21 元   入组数：102910 例&quot;/&gt;</div></pre></td></tr></table></figure>
+<p>使用多个的的时候在strings里面定义的记得要写上%1和%2要不然会报错的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&lt;string name=&quot;monthperformance&quot;&gt;总计：贡献额：%1$d 元   入组数：%2$d 例&lt;/string&gt;</div></pre></td></tr></table></figure>
+<h4 id="view的VISIBLE和GONE"><a href="#view的VISIBLE和GONE" class="headerlink" title="view的VISIBLE和GONE"></a>view的VISIBLE和GONE</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">  &lt;data&gt;</div><div class="line">        &lt;import type=&quot;android.view.View&quot;/&gt;</div><div class="line">        &lt;variable</div><div class="line">            name=&quot;item&quot;</div><div class="line">            type=&quot;com.xxx.xxxx.model.QuestionModel&quot;/&gt;</div><div class="line">        &lt;variable</div><div class="line">            name=&quot;presenter&quot;</div><div class="line">            type=&quot;com.xxx.xxx.view.business.common.DetailActivity.Presenter&quot;/&gt;</div><div class="line">    &lt;/data&gt;</div><div class="line"></div><div class="line">&lt;ImageView</div><div class="line">          android:layout_width=&quot;wrap_content&quot;</div><div class="line">          android:layout_height=&quot;wrap_content&quot;</div><div class="line">          android:onClick=&quot;@&#123;() -&gt; presenter.onTopClick(item)&#125;&quot;</div><div class="line">          android:src=&quot;@&#123;item.topStatus ? @drawable/ic_had_up : @drawable/ic_up&#125;&quot;</div><div class="line">          android:visibility=&quot;@&#123;item.myQuestion ? View.VISIBLE : View.GONE&#125;&quot;</div><div class="line">          tools:src=&quot;@drawable/ic_had_up&quot;/&gt;</div></pre></td></tr></table></figure>
+<p>这部分很好的说明了点击事件的使用和view的显示和隐藏，也可以根据状态来选择不同的src。</p>
+<h4 id="onLongClick事件"><a href="#onLongClick事件" class="headerlink" title="onLongClick事件"></a>onLongClick事件</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"> &lt;LinearLayout</div><div class="line">           android:layout_width=&quot;wrap_content&quot;</div><div class="line">           android:layout_height=&quot;wrap_content&quot;</div><div class="line">           android:gravity=&quot;center_horizontal&quot;</div><div class="line">           android:onClick=&quot;@&#123;() -&gt; presenter.onItemClick(item)&#125;&quot;</div><div class="line">           android:onLongClick=&quot;@&#123;() -&gt; presenter.onItemLongClick(item)&#125;&quot;</div><div class="line">           android:orientation=&quot;vertical&quot;</div><div class="line">           android:paddingRight=&quot;25dp&quot;</div><div class="line">           android:visibility=&quot;@&#123;item.showProgress ? View.INVISIBLE : View.VISIBLE&#125;&quot;&gt;</div><div class="line">....省略代码</div></pre></td></tr></table></figure>
+<p>记得在定义方法的时候记得要有个boolean类型的返回，当时没有注意到导致了databinding生成不了，后来看了官网才发现，怪自己啊。。。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">public boolean onItemLongClick(FileModel model) &#123;</div><div class="line">  </div><div class="line">    return true;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h4 id="RecyclerView方面的使用"><a href="#RecyclerView方面的使用" class="headerlink" title="RecyclerView方面的使用"></a>RecyclerView方面的使用</h4><p>使用了<a href="https://github.com/markzhai/DataBindingAdapter" target="_blank" rel="external">databindingAdapter</a>，代码非常的简单，使用起来也非常的方便好比</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">mAdapter = new MultiTypeAdapter(this);</div><div class="line">       mAdapter.addViewTypeToLayoutMap(PROJECT_VIEW_TYPE, R.layout.item_discuss_project);</div><div class="line">       mAdapter.addViewTypeToLayoutMap(STUDY_VIEW_TYPE, R.layout.item_discuss_study);</div><div class="line">       mAdapter.addViewTypeToLayoutMap(EXPERIENCE_VIEW_TYPE, R.layout.item_discuss_experience);</div><div class="line">       mAdapter.setPresenter(new Presenter());</div><div class="line">       getRecyclerViewWithFooter().setAdapter(mAdapter);</div><div class="line">       getRecyclerViewWithFooter().setVerticalLinearLayout();</div></pre></td></tr></table></figure>
+<p>这是我RecyclerView多个布局的定义，在xml中使用</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">&lt;data&gt;</div><div class="line"></div><div class="line">       &lt;import type=&quot;android.view.View&quot;/&gt;</div><div class="line"></div><div class="line">       &lt;variable</div><div class="line">           name=&quot;item&quot;</div><div class="line">           type=&quot;com.xxx.xxx.model.CommentModel&quot;/&gt;</div><div class="line"></div><div class="line">       &lt;variable</div><div class="line">           name=&quot;presenter&quot;</div><div class="line">           type=&quot;com.xxx.xxx.listener.CommentPresenter&quot;/&gt;</div><div class="line">   &lt;/data&gt;</div></pre></td></tr></table></figure>
+<p>就是数据的name为item和事件的name为presenter。更多的使用可以自己去看github上的介绍。</p>
+<h4 id="图片访问方面"><a href="#图片访问方面" class="headerlink" title="图片访问方面"></a>图片访问方面</h4><p>因为这个app图片的使用上还是蛮多的，所以选择了Fresco（也看中它能在xml中写一些配置），不太好的地方就是包的体积大了些，但是还是能接受的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">&lt;com.xxx.xxx.view.widget.MyDraweeView</div><div class="line">                android:layout_width=&quot;@dimen/user_avater_w&quot;</div><div class="line">                android:layout_height=&quot;@dimen/user_avater_w&quot;</div><div class="line">                app:failureImage=&quot;@drawable/ic_avatar&quot;</div><div class="line">                app:placeholderImage=&quot;@drawable/ic_avatar&quot;</div><div class="line">                app:roundAsCircle=&quot;true&quot;</div><div class="line">                app:url=&quot;@&#123;item.avatar&#125;&quot;/&gt;</div></pre></td></tr></table></figure>
+<p>这里的MyDraweeView是继承SimpleDraweeView因为fresco是不支持自适应的，所以在这里你可以自己设置view的LayoutParams来达到目的。</p>
+<h3 id="CleanArchitecture框架的使用"><a href="#CleanArchitecture框架的使用" class="headerlink" title="CleanArchitecture框架的使用"></a>CleanArchitecture框架的使用</h3><h4 id="api和repository"><a href="#api和repository" class="headerlink" title="api和repository"></a>api和repository</h4><p>api和repository，我把各个模块的api都分开定义，这样在分模块开发的时候，可以各自定义api<br><img src="http://upload-images.jianshu.io/upload_images/1353151-0ff500dfe4defd74.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="api.png"></p>
+<h4 id="module设计"><a href="#module设计" class="headerlink" title="module设计"></a>module设计</h4><p>dagger，在定义module的时候我采用的是new的方式，而不是使用在构造函数上加@Inject，因为采用new的方式能达到局部单例的效果，</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">@Module</div><div class="line">public class ProjectModule &#123;</div><div class="line"></div><div class="line">    public ProjectModule() &#123;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Provides</div><div class="line">    @PerActivity</div><div class="line">    ProjectSearchUseCase provideProjectSearchUseCase(ProjectRepository projectRepository,</div><div class="line">                                                     ThreadExecutor threadExecutor,</div><div class="line">                                                     PostExecutionThread postExecutionThread) &#123;</div><div class="line">        return new ProjectSearchUseCase(projectRepository, threadExecutor, postExecutionThread);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">this.provideProjectHistoryUseCaseeProvider =</div><div class="line">        DoubleCheck.provider(</div><div class="line">            ProjectModule_ProvideProjectHistoryUseCaseeFactory.create(</div><div class="line">                builder.projectModule,</div><div class="line">                userRepositoryProvider,</div><div class="line">                threadExecutorProvider,</div><div class="line">                postExecutionThreadProvider));</div></pre></td></tr></table></figure>
+<p>这里的doublecheck就是起到这里这个效果，dagger中的单例也是如此，而不是你加上@Singleton就是单例了，是要在Application中才能达到单例的效果。这里就不展开了。</p>
+<h4 id="component设计"><a href="#component设计" class="headerlink" title="component设计"></a>component设计</h4><p>component也是采用的分模块定义，在fragment和activity使用上我也是采用和github上一样的方法在activity上提供component，activity实现HasComponent接口，在fragment里面<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">protected &lt;C&gt; C getComponent(Class&lt;C&gt; componentType) &#123;</div><div class="line">       return componentType.cast(((HasComponent&lt;C&gt;) getActivity()).getComponent());</div><div class="line">   &#125;</div></pre></td></tr></table></figure></p>
+<p>就能获取到activity的component了。</p>
+<h4 id="数据模型的转换"><a href="#数据模型的转换" class="headerlink" title="数据模型的转换"></a>数据模型的转换</h4><p>CleanArchitecture中的各种DataMapper，之前不是很理解这个是干什么用的，github上在data层和presentation两层同时使用了。后来在实践的时候发现presentation这层的转化还是非常有必要的。当后台接口返回的数据格式不是你想要的时候，（后台还懒得去帮你改）你可以定义一层转换，还是就是viewmodel中还包含了一些接口返回没有的字段，好比一个view是否显示<br><img src="http://upload-images.jianshu.io/upload_images/1353151-70419deb3675f8b1.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="datamapper.png">当后台返回的数据类型不是你想要的好比boolean类型返回的是string的‘0’和‘1’，还有就是null的判断，尽量的让view获取到的数据不是空对象。</p>
+<h4 id="缓存"><a href="#缓存" class="headerlink" title="缓存"></a>缓存</h4><p>缓存方面，本身app就没有多大的缓存，只是记录一下搜索记录，没有引入什么第三方的数据库之类的，只是很简单的把搜索记录存入一个文件中</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">if (!TextUtils.isEmpty(content)) &#123;</div><div class="line">          final File file = this.buildFile(fileName);</div><div class="line">          List&lt;String&gt; history = getHistoryList(fileName, false);</div><div class="line">          if (history.contains(content)) &#123;</div><div class="line">              history.remove(content);</div><div class="line">          &#125;</div><div class="line">          history.add(content);</div><div class="line">          final String jsonString = mGson.toJson(history).toString();</div><div class="line">          this.executeAsynchronously(new CacheWriter(mFileManager, file, jsonString));</div><div class="line">      &#125;</div></pre></td></tr></table></figure>
+<p>在每次搜索的时候保存搜索记录</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">@Override</div><div class="line">   public Observable&lt;ProjectEntity&gt; getSearchData(ProjectSearch search, boolean isSave) &#123;</div><div class="line">       return mProjectApi.getListAndSearch(search)</div><div class="line">               .doOnNext(entity -&gt; &#123;</div><div class="line">                   if (isSave) &#123;</div><div class="line">                       ProjectDataRepository.this.mCacheImp.putProjectSearchHistory(search.getKey_Words());</div><div class="line">                   &#125;</div><div class="line">               &#125;)</div><div class="line">               .compose(RepositoryUtils.handleResult());</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<h3 id="RecyclerView嵌套webview的问题"><a href="#RecyclerView嵌套webview的问题" class="headerlink" title="RecyclerView嵌套webview的问题"></a>RecyclerView嵌套webview的问题</h3><p>记录一次RecyclerView嵌套webview的问题，一开始我直接在layout布局里面是这样写的，发现页面显示不全（原因未找到。。。要是有人知道原因欢迎告知）。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">&lt;LinearLayout</div><div class="line">       android:layout_width=&quot;match_parent&quot;</div><div class="line">       android:layout_height=&quot;match_parent&quot;</div><div class="line">       android:background=&quot;@color/white&quot;</div><div class="line">       android:orientation=&quot;vertical&quot;&gt;</div><div class="line"></div><div class="line">       &lt;WebView</div><div class="line">           android:layout_width=&quot;match_parent&quot;</div><div class="line">           android:layout_height=&quot;0dp&quot;</div><div class="line">           android:layout_weight=&quot;1&quot;</div><div class="line">           app:weburl=&quot;@&#123;item.studyContent&#125;&quot;/&gt;</div><div class="line"></div><div class="line">       &lt;include layout=&quot;@layout/layout_detail_discuss_header&quot;/&gt;</div><div class="line"></div><div class="line">   &lt;/LinearLayout&gt;</div></pre></td></tr></table></figure>
+<p>解决方法就是自定义一个view继承LinearLayout，采用动态生成webview这样就能显示全了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">setOrientation(VERTICAL);</div><div class="line">      mWeb = new WebView(getContext().getApplicationContext(), null);</div><div class="line">      WebSettings setting = mWeb.getSettings();</div><div class="line">      setting.setJavaScriptEnabled(true);</div><div class="line">      setting.setBuiltInZoomControls(true);</div><div class="line">      setting.setUseWideViewPort(true);</div><div class="line">      setting.setLoadWithOverviewMode(true);</div><div class="line">      setting.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.NARROW_COLUMNS);</div><div class="line">      LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);</div><div class="line">      addView(mWeb, params);</div><div class="line">      LinearLayout tagViewsLayout = (LinearLayout) LayoutInflater.from(getContext()).inflate(R.layout.layout_detail_discuss_header, null);</div><div class="line">      addView(tagViewsLayout);</div></pre></td></tr></table></figure>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>使用databinding的时候确实让我感受到了比平时写的要快一些，再也不是写id了也不用设置值了，写起来还是比较爽的，期间也遇到了一些问题，就是使用databinding和dagger一起使用的时候报错，有时候定位不是很准确，但是只要认真看看还是能找得到错误之处的，可能是因为我还是能力还不够的问题。通过这次的实践，让我更加深刻的理解了CleanArchitecture这个框架，也体会到了一些好的框架带来的好处。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/10/04/FragmentTabHost使用遇到的问题/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1118,7 +1570,7 @@ if (mPresenter != null) mPresenter.detachView();
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-count">9</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -1131,7 +1583,7 @@ if (mPresenter != null) mPresenter.detachView();
               
               <div class="site-state-item site-state-tags">
                 
-                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-count">6</span>
                   <span class="site-state-item-name">标签</span>
                 
               </div>
