@@ -229,10 +229,591 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/10/04/FragmentTabHost使用遇到的问题/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="GoGo (吴克伟)">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GoGo's home">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/10/04/FragmentTabHost使用遇到的问题/" itemprop="url">FragmentTabHost使用遇到的问题</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-04T09:45:16+08:00">
+                2017-10-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>本文记录一下在使用fragmentTabHost的时候所遇到的问题。</p>
+<h3 id="fragment的重新建立的原因"><a href="#fragment的重新建立的原因" class="headerlink" title="fragment的重新建立的原因"></a>fragment的重新建立的原因</h3><p>原生的fragmenttabhost在切换tab的时候，会导致fragment的重新建立</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line">private FragmentTransaction doTabChanged(String tabId, FragmentTransaction ft) &#123;</div><div class="line">       .......省略部分代码</div><div class="line">        if (mLastTab != newTab) &#123;</div><div class="line">            if (ft == null) &#123;</div><div class="line">                ft = mFragmentManager.beginTransaction();</div><div class="line">            &#125;</div><div class="line">            if (mLastTab != null) &#123;</div><div class="line">                if (mLastTab.fragment != null) &#123;</div><div class="line">                    ft.detach(mLastTab.fragment);</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">            if (newTab != null) &#123;</div><div class="line">                if (newTab.fragment == null) &#123;</div><div class="line">                    newTab.fragment = Fragment.instantiate(mContext,</div><div class="line">                            newTab.clss.getName(), newTab.args);</div><div class="line">                    ft.add(mContainerId, newTab.fragment, newTab.tag);</div><div class="line">                &#125; else &#123;</div><div class="line">                    ft.attach(newTab.fragment);</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            mLastTab = newTab;</div><div class="line">        &#125;</div><div class="line">        return ft;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>很清楚的看到在切换的时候上个fragment调用detach，新的fragment调用的是attach，所以会导致重新初始化。</p>
+<h3 id="解决办法"><a href="#解决办法" class="headerlink" title="解决办法"></a>解决办法</h3><p>就是把源码复杂一份，修改这个部分代码就可以解决了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">if (mLastTab != null) &#123;</div><div class="line">                if (mLastTab.fragment != null) &#123;</div><div class="line">                    ft.hide(mLastTab.fragment);  //detach改为hide</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">            if (newTab.fragment == null) &#123;</div><div class="line">                newTab.fragment = Fragment.instantiate(mContext,</div><div class="line">                        newTab.clss.getName(), newTab.args);</div><div class="line">                ft.add(mContainerId, newTab.fragment, newTab.tag);</div><div class="line">            &#125; else &#123;</div><div class="line">                ft.show(newTab.fragment); //attach改为show</div><div class="line">            &#125;</div></pre></td></tr></table></figure>
+<h3 id="要求是当点击其中一个tab的时候不导致fragment的切换，而是做一些其他的操作"><a href="#要求是当点击其中一个tab的时候不导致fragment的切换，而是做一些其他的操作" class="headerlink" title="要求是当点击其中一个tab的时候不导致fragment的切换，而是做一些其他的操作"></a>要求是当点击其中一个tab的时候不导致fragment的切换，而是做一些其他的操作</h3><p>解决办法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line">public class NoTabFragmentTabHost extends FragmentTabHost &#123;</div><div class="line">	</div><div class="line">	private String mCurrentTag;</div><div class="line">	</div><div class="line">	private String mNoTabChangedTag;</div><div class="line">	</div><div class="line">	public NoTabFragmentTabHost(Context context, AttributeSet attrs) &#123;</div><div class="line">		super(context, attrs);</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">	@Override</div><div class="line">	public void onTabChanged(String tag) &#123;</div><div class="line">		</div><div class="line">		if (tag.equals(mNoTabChangedTag)) &#123;</div><div class="line">			setCurrentTabByTag(mCurrentTag);</div><div class="line">		&#125; else &#123;</div><div class="line">			super.onTabChanged(tag);</div><div class="line">			mCurrentTag = tag;</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">	public void setNoTabChangedTag(String tag) &#123;</div><div class="line">		this.mNoTabChangedTag = tag;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="app当再次点击当前tab的时候会去刷新操作"><a href="#app当再次点击当前tab的时候会去刷新操作" class="headerlink" title="app当再次点击当前tab的时候会去刷新操作"></a>app当再次点击当前tab的时候会去刷新操作</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mTabHost.getTabWidget().getChildAt(i).setOnTouchListener(this);</div></pre></td></tr></table></figure>
+<p>给每个的tabwidget的子view设置监听事件，再onTouch的处理</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">boolean consumed = false;</div><div class="line">       if (event.getAction() == MotionEvent.ACTION_DOWN</div><div class="line">               &amp;&amp; v.equals(mTabHost.getCurrentTabView())) &#123;</div><div class="line"></div><div class="line">              Log.d(&quot;再次点击了&quot;, &quot;再次点击了&quot;);</div><div class="line">               consumed = true;</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">return consumed;</div></pre></td></tr></table></figure>
+<p>在这里你就可以获取当前的fragment再处理逻辑了。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/10/04/原生项目（hot）集成react－native/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="GoGo (吴克伟)">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GoGo's home">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/10/04/原生项目（hot）集成react－native/" itemprop="url">原生项目（hot）集成react－native</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-04T09:33:35+08:00">
+                2017-10-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>最近react-native(以下简称rn)的技术越来越活，国内的使用情况也越来越多，国内的氛围也越来越好，其实我是从去年就接触了一下rn，当时我学习了一个多星期，然后刚好处于要换工作就没有学习了，刚好最近有点空闲的时间，就再次去学习，只能说rn的更新速度太快了，很多之前的写法都变了，只能从头开始，但是一整个项目都采用rn来构建还不是很现实，所以国内很多的也是集成rn，所以我也来凑凑热闹。</p>
+<h3 id="添加依赖"><a href="#添加依赖" class="headerlink" title="添加依赖"></a>添加依赖</h3><p>在项目的build.gradle下添加</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">allprojects &#123;</div><div class="line">    repositories &#123;</div><div class="line">        mavenLocal()</div><div class="line">        jcenter()</div><div class="line">        maven &#123;</div><div class="line">            // All of React Native (JS, Android binaries) is installed from npm</div><div class="line">            url &quot;$rootDir/node_modules/react-native/android&quot;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="app的实现ReactApplication接口"><a href="#app的实现ReactApplication接口" class="headerlink" title="app的实现ReactApplication接口"></a>app的实现ReactApplication接口</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"> */</div><div class="line">public class App extends Application implements ReactApplication&#123;</div><div class="line"></div><div class="line">    private static App appContext;</div><div class="line">    private static AppComponent mAppComponent;</div><div class="line"></div><div class="line">    private final ReactNativeHost mReactNativeHost = new ReactNativeHost(this) &#123;</div><div class="line">        @Override</div><div class="line">        protected boolean getUseDeveloperSupport() &#123;</div><div class="line">            return BuildConfig.DEBUG;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        @Override</div><div class="line">        protected List&lt;ReactPackage&gt; getPackages() &#123;</div><div class="line">            return Arrays.&lt;ReactPackage&gt;asList(</div><div class="line">                    new MainReactPackage()</div><div class="line">            );</div><div class="line">        &#125;</div><div class="line">    &#125;;</div></pre></td></tr></table></figure>
+<h3 id="AndroidManifest-xml"><a href="#AndroidManifest-xml" class="headerlink" title="AndroidManifest.xml"></a>AndroidManifest.xml</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">&lt;uses-permission android:name=&quot;android.permission.INTERNET&quot;&gt;&lt;/uses-permission&gt;</div><div class="line">&lt;activity android:name=&quot;com.facebook.react.devsupport.DevSettingsActivity&quot;/&gt;</div></pre></td></tr></table></figure>
+<p>加入以下的activity可以在摇一摇出现rn的配置页面。</p>
+<h3 id="activity来继承ReactActivity"><a href="#activity来继承ReactActivity" class="headerlink" title="activity来继承ReactActivity"></a>activity来继承ReactActivity</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">public class MainActivity extends ReactActivity &#123;</div><div class="line"></div><div class="line">    /**</div><div class="line">     * Returns the name of the main component registered from JavaScript.</div><div class="line">     * This is used to schedule rendering of the component.</div><div class="line">     */</div><div class="line">    @Override</div><div class="line">    protected String getMainComponentName() &#123;</div><div class="line">        return &quot;MyHot&quot;;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>在这里介绍一篇大帅写的<a href="http://www.jianshu.com/p/ad887f61448a?utm_campaign=haruki&amp;utm_content=note&amp;utm_medium=reader_share&amp;utm_source=weixin" target="_blank" rel="external">React Native 0.31 Bundle 预加载优化</a>主要解决从原生页面到rn页面会有短暂的白屏。使用方法</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">dependencies &#123;</div><div class="line">    compile &quot;com.github.moduth:react-native-preloader:0.31.0&quot;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>把之前继承ReactActivity变成继承MrReactActivity</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">public class MyReactActivity extends MrReactActivity &#123;</div><div class="line">    public static final ReactInfo reactInfo = new ReactInfo(&quot;MyHot&quot;, null);</div><div class="line"></div><div class="line"></div><div class="line">    @Override</div><div class="line">    protected String getMainComponentName() &#123;</div><div class="line">        return reactInfo.getMainComponentName();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Override</div><div class="line">    public ReactInfo getReactInfo() &#123;</div><div class="line">        return reactInfo;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>在调用rn页面调用</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">ReactPreLoader.init(this, MyReactActivity.reactInfo);</div></pre></td></tr></table></figure>
+<p>这样就能很好的解决上述的问题。</p>
+<h3 id="react-native端的代码"><a href="#react-native端的代码" class="headerlink" title="react-native端的代码"></a>react-native端的代码</h3><p>在rn中我引入了redux，以下就贴出关键行代码，在最外层</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">import configureStore from &apos;./store/store.js&apos;</div><div class="line">import App from &apos;./containes/App.js&apos;</div><div class="line"></div><div class="line">const store = configureStore();</div><div class="line">class rootApp extends Component &#123;</div><div class="line">	render() &#123;</div><div class="line">		return (</div><div class="line">			&lt;Provider store=&#123;store&#125;&gt;</div><div class="line">               &lt;App/&gt;</div><div class="line">            &lt;/Provider&gt;</div><div class="line">		)</div><div class="line">	&#125;</div><div class="line">&#125;</div><div class="line">export default rootApp;</div></pre></td></tr></table></figure>
+<p>同时个actions的文件夹里面放着各种的操作，以下是我的newsList的代码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line">import * as types from &quot;../constants/ActionTypes.js&quot;;</div><div class="line">import * as Services from &quot;../utils/Services.js&quot;;</div><div class="line">import &#123;</div><div class="line">	NEW_LIST</div><div class="line">&#125; from &quot;../constants/Urls.js&quot;;</div><div class="line"></div><div class="line"></div><div class="line">export function fetchNews(loading, isRefresh, isLoadMore, pn) &#123;</div><div class="line">	return dispatch =&gt; &#123;</div><div class="line">		dispatch(fetchNewsList(loading, isRefresh, isLoadMore));</div><div class="line">		Services.getNewList(NEW_LIST, pn)</div><div class="line">			.then(result =&gt; &#123;</div><div class="line">				dispatch(receiveNewsList(result));</div><div class="line">			&#125;);</div><div class="line">	&#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">function fetchNewsList(loading, isRefresh, isLoadMore) &#123;</div><div class="line">	return &#123;</div><div class="line">		type: types.FE_NEWLIST,</div><div class="line">		loading: loading,</div><div class="line">		isRefresh: isRefresh,</div><div class="line">		isLoadMore: isLoadMore</div><div class="line">	&#125;;</div><div class="line">&#125;</div><div class="line"></div><div class="line">function receiveNewsList(newsList) &#123;</div><div class="line">	return &#123;</div><div class="line">		type: types.RE_NEWLIST,</div><div class="line">		newsList: newsList</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>还有就是ruducers文件夹下的和action所对应的</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line">import * as types from &apos;../constants/ActionTypes&apos;;</div><div class="line"></div><div class="line">const initialState = &#123;</div><div class="line">	loading: true,</div><div class="line">	isRefresh: false,</div><div class="line">	isLoadMore: false,</div><div class="line">	newsList: []</div><div class="line">&#125;</div><div class="line"></div><div class="line">export default function revicesNewsList(state = initialState, action) &#123;</div><div class="line">	switch (action.type) &#123;</div><div class="line"></div><div class="line">		case types.FE_NEWLIST:</div><div class="line">			return Object.assign(&#123;&#125;, state, &#123;</div><div class="line">				loading: action.loading,</div><div class="line">				isRefresh: action.isRefresh,</div><div class="line">				isLoadMore: action.isLoadMore,</div><div class="line"></div><div class="line">			&#125;);</div><div class="line">		case types.RE_NEWLIST:</div><div class="line">			return Object.assign(&#123;&#125;, state, &#123;</div><div class="line">				loading: false,</div><div class="line">				isRefresh: false,</div><div class="line">				isLoadMore: false,</div><div class="line">				newsList: state.isLoadMore ? state.newsList.concat(action.newsList) : action.newsList,</div><div class="line">			&#125;);</div><div class="line"></div><div class="line">		default:</div><div class="line">			return state;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>还有就是一个转化的</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div></pre></td><td class="code"><pre><div class="line">import &#123;</div><div class="line">  connect</div><div class="line">&#125; from &apos;react-redux&apos;;</div><div class="line">import News from &quot;../pages/News.js&quot;;</div><div class="line">import &#123;</div><div class="line">  bindActionCreators</div><div class="line">&#125; from &apos;redux&apos;;</div><div class="line">import * as newsAction from &apos;../actions/newsList.js&apos;;</div><div class="line">class NewsContainer extends Component &#123;</div><div class="line"></div><div class="line">  render() &#123;</div><div class="line">    return (</div><div class="line">      &lt;News &#123;...this.props&#125; /&gt;</div><div class="line">    );</div><div class="line">  &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">function mapStateToProps(state) &#123;</div><div class="line">  const &#123;</div><div class="line">    news</div><div class="line">  &#125; = state;</div><div class="line">  return &#123;</div><div class="line">    news</div><div class="line">  &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">function mapDispatchToProp(dispatch) &#123;</div><div class="line">  return &#123;</div><div class="line">    actions: bindActionCreators(newsAction, dispatch)</div><div class="line">  &#125;;</div><div class="line">&#125;</div><div class="line"></div><div class="line">export default connect(mapStateToProps, mapDispatchToProp)(NewsContainer);</div></pre></td></tr></table></figure>
+<p>这样在使用的时候就是调用action的方法</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">componentDidMount() &#123;</div><div class="line">   const &#123;</div><div class="line">     actions</div><div class="line">   &#125; = this.props;</div><div class="line">   actions.fetchNews(true, false, false, page);</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<p>接受到数据</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">render() &#123;</div><div class="line">     const &#123;</div><div class="line">       navigator,</div><div class="line">       news</div><div class="line">     &#125; = this.props;</div><div class="line">     return (</div><div class="line">       &lt;View style=&#123;styles.container&#125;&gt;</div><div class="line">     &lt;Header title=&quot;体育&quot; navigator= &#123;navigator&#125;/&gt;</div><div class="line">     &#123;this.renderContent()&#125;</div><div class="line">     &lt;/View&gt;</div><div class="line"></div><div class="line">     )</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>这样以后要是添加新的页面就很清楚了，在action里面添加动作，在reducers添加action的处理器，这样就很清晰了。<br>我添加了一个Services，来获取数据</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div></pre></td><td class="code"><pre><div class="line">const HOST = &quot;http://apis.baidu.com/&quot;;</div><div class="line">import FetchHttpClient, &#123;</div><div class="line">	query,</div><div class="line">	header</div><div class="line">&#125; from &apos;fetch-http-client&apos;;</div><div class="line">import &#123;</div><div class="line">	toastShort</div><div class="line">&#125; from &quot;./ToastUtil.js&quot;;</div><div class="line"></div><div class="line">let client = new FetchHttpClient(HOST);</div><div class="line"></div><div class="line">export function getNewList(url, pnSize) &#123;</div><div class="line"></div><div class="line">	return getClient().get(url, &#123;</div><div class="line">			query: &#123;</div><div class="line">				num: 10,</div><div class="line">				pn: pnSize</div><div class="line">			&#125;,</div><div class="line">		&#125;).then(filterJSON)</div><div class="line">		.then(filterStatus)</div><div class="line">		.catch((error) =&gt; &#123;</div><div class="line">			toastShort(&apos;网络发生错误,请重试!&apos;)</div><div class="line">		&#125;);</div><div class="line">&#125;</div><div class="line"></div><div class="line">function getClient() &#123;</div><div class="line">	client.addMiddleware(query());</div><div class="line">	client.addMiddleware(request =&gt; &#123;</div><div class="line">		request.options.headers[&apos;apikey&apos;] = &apos;ff27ef67506b2c0738a3252b01f8d564&apos;;</div><div class="line">	&#125;);</div><div class="line">	return client;</div><div class="line">&#125;</div><div class="line"></div><div class="line">function filterStatus(res) &#123;</div><div class="line">	if (res.code === 200) &#123;</div><div class="line">		return res.newslist;</div><div class="line">	&#125; else &#123;</div><div class="line">		toastShort(res.msg);</div><div class="line">	&#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">function filterJSON(res) &#123;</div><div class="line">	return res.json();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>通过这次的学习，让我了解了react-native，因为react-native的周边产品还是很多的，也学习了redux是的reacr-native也有一个小小的框架实现，使得代码结构更加的清晰，本人rn的水平有限，要是有不对的地方，还请指出和谅解。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/10/04/Hot项目进行部分修改（加入Dagger2）/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="GoGo (吴克伟)">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GoGo's home">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/10/04/Hot项目进行部分修改（加入Dagger2）/" itemprop="url">Hot项目进行部分修改（加入Dagger2）</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-04T09:26:31+08:00">
+                2017-10-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>最近在看Dagger2，网上资料也很多，并且在自己私下的项目中Hot运用（一个关于微信热门头条的分享）。这里就不介绍dagger的一些使用方法啊，<a href="http://www.jianshu.com/p/01d3c014b0b1" target="_blank" rel="external">这里有个很好的介绍dagger介绍</a></p>
+<h3 id="DataManager管理"><a href="#DataManager管理" class="headerlink" title="DataManager管理"></a>DataManager管理</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Created by wukewei on 16/7/12.</div><div class="line"> * 这个类是管理app的数据来源无论从网络获取.内存.还是磁盘</div><div class="line"> */</div><div class="line">public class DataManager &#123;</div><div class="line"></div><div class="line">    private  HotApi mHotApi;</div><div class="line">    private  CacheLoader cacheLoader;</div><div class="line"></div><div class="line"></div><div class="line">    @Inject</div><div class="line">    public DataManager(HotApi hotApi, CacheLoader cacheLoader) &#123;</div><div class="line">        this.mHotApi = hotApi;</div><div class="line">        this.cacheLoader = cacheLoader;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    /***</div><div class="line">     * 获取分类的类型</div><div class="line">     * @param</div><div class="line">     * @param</div><div class="line">     * @return</div><div class="line">     */</div><div class="line">    public List&lt;String&gt; getTabs() &#123;</div><div class="line">        List&lt;String&gt; tabs = new ArrayList&lt;&gt;();</div><div class="line">        tabs.add(&quot;科技&quot;);</div><div class="line">        tabs.add(&quot;美女&quot;);</div><div class="line">        tabs.add(&quot;生活&quot;);</div><div class="line">        tabs.add(&quot;娱乐&quot;);</div><div class="line">        tabs.add(&quot;搞笑&quot;);</div><div class="line">        tabs.add(&quot;宅男&quot;);</div><div class="line">        return tabs;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    /***</div><div class="line">     * 获取列表</div><div class="line">     * @param pn 页码</div><div class="line">     * @param type 类别名称</div><div class="line">     * @return</div><div class="line">     */</div><div class="line">    public Observable&lt;List&lt;Popular&gt;&gt; getPopular(int pn, String type) &#123;</div><div class="line">        return mHotApi.getPopular(pn, Constants.PAGE_SIZE, type)</div><div class="line">                .compose(SchedulersCompat.applyIoSchedulers())</div><div class="line">                .compose(RxResultHelper.handleResult())</div><div class="line">                .doOnNext(populars -&gt; &#123;</div><div class="line">                    if (pn == 1) &#123;</div><div class="line">                        ListPopular popular = new ListPopular(populars);</div><div class="line">                        cacheLoader.upNewData(type, popular);</div><div class="line">                    &#125;</div><div class="line">                &#125;);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    /***</div><div class="line">     * 获取缓存信息 默认只缓存第一页</div><div class="line">     * @param type 类别名称</div><div class="line">     * @param</div><div class="line">     * @return</div><div class="line">     */</div><div class="line">    public Observable&lt;List&lt;Popular&gt;&gt; getCachePopular(String type) &#123;</div><div class="line">        NetworkCache&lt;ListPopular&gt; networkCache = new NetworkCache&lt;ListPopular&gt;() &#123;</div><div class="line">            @Override</div><div class="line">            public Observable&lt;ListPopular&gt; get(String key, Class&lt;ListPopular&gt; cls) &#123;</div><div class="line">                return mHotApi.getPopular(1, Constants.PAGE_SIZE, type)</div><div class="line">                        .compose(SchedulersCompat.applyIoSchedulers())</div><div class="line">                        .compose(RxResultHelper.handleResult())</div><div class="line">                        .flatMap(populars -&gt; &#123;</div><div class="line">                            ListPopular popular = new ListPopular(populars);</div><div class="line">                            return Observable.just(popular);</div><div class="line">                        &#125;);</div><div class="line">            &#125;</div><div class="line">        &#125;;</div><div class="line"></div><div class="line">        return cacheLoader.asDataObservable(Constants.NEW_LIST + type, ListPopular.class, networkCache)</div><div class="line">                .map(listPopular -&gt; listPopular.data);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="AppModule的构造的对象和提供的依赖"><a href="#AppModule的构造的对象和提供的依赖" class="headerlink" title="AppModule的构造的对象和提供的依赖"></a>AppModule的构造的对象和提供的依赖</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Created by wukewei on 16/7/19.</div><div class="line"> */</div><div class="line">@Module</div><div class="line">public class AppModule &#123;</div><div class="line"></div><div class="line">    private App application;</div><div class="line"></div><div class="line">    public AppModule(App application) &#123;</div><div class="line">        this.application = application;</div><div class="line">    &#125;</div><div class="line"></div><div class="line"></div><div class="line">    @Provides</div><div class="line">    @Singleton</div><div class="line">    @ContextLife(&quot;Application&quot;)</div><div class="line">    public App provideApp() &#123;</div><div class="line">        return application;</div><div class="line">    &#125;</div><div class="line"></div><div class="line"></div><div class="line">    @Provides</div><div class="line">    @Singleton</div><div class="line">    OkHttpClient provideOkHttpClient() &#123;</div><div class="line">        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();</div><div class="line">        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);</div><div class="line"></div><div class="line">        Interceptor apikey = chain -&gt; chain.proceed(chain.request().newBuilder()</div><div class="line">                .addHeader(&quot;apikey&quot;, Constants.Api_Key).build());</div><div class="line"></div><div class="line">        OkHttpClient okHttpClient = new OkHttpClient.Builder()</div><div class="line">                .readTimeout(Constants.HTTP_CONNECT_TIMEOUT, TimeUnit.MILLISECONDS)</div><div class="line">                .connectTimeout(Constants.HTTP_CONNECT_TIMEOUT, TimeUnit.MILLISECONDS)</div><div class="line">                .addInterceptor(apikey)</div><div class="line">                .addInterceptor(loggingInterceptor)</div><div class="line">                .build();</div><div class="line"></div><div class="line">        return okHttpClient;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Provides</div><div class="line">    @Singleton</div><div class="line">    HotApi provideHotApi(OkHttpClient okHttpClient) &#123;</div><div class="line">        Retrofit retrofit1 = new Retrofit.Builder()</div><div class="line">                .baseUrl(Constants.Base_Url)</div><div class="line">                .client(okHttpClient)</div><div class="line">                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())</div><div class="line">                .addConverterFactory(GsonConverterFactory.create())</div><div class="line">                .build();</div><div class="line">        HotApi hotApi = retrofit1.create(HotApi.class);</div><div class="line"></div><div class="line">        return hotApi;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Provides</div><div class="line">    @Singleton</div><div class="line">    CacheLoader provideCacheLoader() &#123;</div><div class="line">        return CacheLoader.getInstance(application);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Provides</div><div class="line">    @Singleton</div><div class="line">    DataManager provideDataManager(HotApi hotApi, CacheLoader cacheLoader) &#123;</div><div class="line">        return new DataManager(hotApi, cacheLoader);</div><div class="line">    &#125;</div><div class="line"></div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>接下来的Component的注入的代码</p>
+<h3 id="ActivityComponent的代码"><a href="#ActivityComponent的代码" class="headerlink" title="ActivityComponent的代码"></a>ActivityComponent的代码</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Created by wukewei on 16/7/19.</div><div class="line"> */</div><div class="line">@PerActivity</div><div class="line">@Component(dependencies = AppComponent.class, modules = ActivityModule.class)</div><div class="line">public interface ActivityComponent &#123;</div><div class="line"></div><div class="line">    DataManager getDataManager();</div><div class="line"></div><div class="line">    Activity getActivity();</div><div class="line"></div><div class="line">    void inject(MainActivity mainActivity);</div><div class="line">    void inject(WebActivity webActivity);</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>3.FragmentComponent的代码<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Created by wukewei on 16/7/19.</div><div class="line"> */</div><div class="line">@PerFragment</div><div class="line">@Component(dependencies = AppComponent.class, modules = FragmentModule.class)</div><div class="line">public interface FragmentComponent &#123;</div><div class="line"></div><div class="line">    DataManager getDataManager();</div><div class="line"></div><div class="line">    Activity getActivity();</div><div class="line"></div><div class="line">    void inject(ItemFragment itemFragment);</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>之前在View 和P的关联在通过在p构造方法中传入，现在是使用调用p的attachView（）方法。</p>
+<h3 id="现在BasePresenter设计"><a href="#现在BasePresenter设计" class="headerlink" title="现在BasePresenter设计"></a>现在BasePresenter设计</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Created by wukewei on 16/5/26.</div><div class="line"> */</div><div class="line">public abstract class BasePresenter&lt;T extends IView&gt; implements IPresenter&lt;T&gt; &#123;</div><div class="line"></div><div class="line">    protected Activity mActivity;</div><div class="line">    protected T mView;</div><div class="line">    protected CompositeSubscription mCompositeSubscription;</div><div class="line">    protected DataManager dataManager;</div><div class="line"></div><div class="line">    public BasePresenter(DataManager dataManager, Activity activity) &#123;</div><div class="line">        this.dataManager = dataManager;</div><div class="line">        this.mActivity = activity;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Override</div><div class="line">    public void attachView(T view) &#123;</div><div class="line">        this.mView = view;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    protected void handleError(Throwable throwable) &#123;</div><div class="line">        ToastUtil.showShort(mActivity, ErrorHanding.handleError(throwable));</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    protected void unSubscribe() &#123;</div><div class="line">        if (mCompositeSubscription != null) &#123;</div><div class="line">            mCompositeSubscription.unsubscribe();</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    protected void addSubscribe(Subscription subscription) &#123;</div><div class="line">        if (mCompositeSubscription == null) &#123;</div><div class="line">            mCompositeSubscription = new CompositeSubscription();</div><div class="line">        &#125;</div><div class="line">        mCompositeSubscription.add(subscription);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Override</div><div class="line">    public void detachView() &#123;</div><div class="line">        this.mView = null;</div><div class="line">        unSubscribe();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="BaseActivity中的p之前需要自己new出来，现在加入了dagger2，通过注入的方式"><a href="#BaseActivity中的p之前需要自己new出来，现在加入了dagger2，通过注入的方式" class="headerlink" title="BaseActivity中的p之前需要自己new出来，现在加入了dagger2，通过注入的方式"></a>BaseActivity中的p之前需要自己new出来，现在加入了dagger2，通过注入的方式</h3><p>/**</p>
+<ul>
+<li><p>Created by wukewei on 16/5/26.<br>*/<br>public abstract class BaseActivity<t extends="" ipresenter=""> extends AppCompatActivity implements IView {</t></p>
+<p> @Inject<br> protected T mPresenter;<br> protected Activity mContext;</p>
+<p> @Override<br> protected void onCreate(@Nullable Bundle savedInstanceState) {</p>
+<pre><code>super.onCreate(savedInstanceState);
+setContentView(getLayout());
+ButterKnife.bind(this);
+mContext = this;
+setupActivityComponent(App.getAppComponent(),new ActivityModule(this));
+mPresenter.attachView(this);
+initEventAndData();
+</code></pre><p> }</p>
+<p> protected void setCommonBackToolBack(Toolbar toolbar, String title) {</p>
+<pre><code>toolbar.setTitle(title);
+setSupportActionBar(toolbar);
+getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+getSupportActionBar().setDisplayShowHomeEnabled(true);
+toolbar.setNavigationOnClickListener(v -&gt; onBackPressed());
+</code></pre><p> }</p>
+<p> @Override<br> protected void onDestroy() {</p>
+<pre><code>super.onDestroy();
+ButterKnife.unbind(this);
+if (mPresenter != null) mPresenter.detachView();
+</code></pre><p> }</p>
+<p> /**</p>
+<ul>
+<li>依赖注入的入口</li>
+<li><p>@param appComponent appComponent<br>*/<br>protected abstract void setupActivityComponent(AppComponent appComponent, ActivityModule activityModule);</p>
+<p>protected abstract int getLayout();<br>protected abstract void initEventAndData();<br>}</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">多了setupActivityComponent（）方法这就是依赖注入的入口好比。</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>@Override<br> protected void setupActivityComponent(AppComponent appComponent, ActivityModule activityModule) {</p>
+<pre><code>DaggerActivityComponent.builder()
+        .appComponent(appComponent)
+        .activityModule(activityModule)
+        .build()
+        .inject(this);
+</code></pre><p> }<br>````</p>
+</li>
+</ul>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>这个项目是我私下自己在学习新的技术，并且运用在一起的项目，也是像对待产品一个对待这个app开发，后续会不断的学习和更新项目。本人也是个android小菜鸟，从最弱最弱的做起。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/10/04/Rxjava实现三级缓存的两种方式/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="GoGo (吴克伟)">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GoGo's home">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/10/04/Rxjava实现三级缓存的两种方式/" itemprop="url">Rxjava实现三级缓存的两种方式</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-04T09:08:42+08:00">
+                2017-10-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>本文正如标题所说的用rxjava实现数据的三级缓存分别为内存，磁盘，网络，刚好最近在看Android源码设计模式解析与实战（受里面的ImageLoader的设计启发）,我把代码放到了我的hot项目中。<a href="https://github.com/zj-wukewei/Hot" target="_blank" rel="external">github地址</a></p>
+<h3 id="使用concat-和first-的操作符"><a href="#使用concat-和first-的操作符" class="headerlink" title="使用concat()和first()的操作符"></a>使用concat()和first()的操作符</h3><p>用concat()和first()的操作符来实现，这是我在看Android源码设计模式解析与实战，作者在第一章的时候就介绍ImageLoader的设计。在内存中存储的方式LruCache来实现的，磁盘存储的方式就是序列化存储。</p>
+<h4 id="定义一个接口"><a href="#定义一个接口" class="headerlink" title="定义一个接口"></a>定义一个接口</h4> <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Created by wukewei on 16/6/19.</div><div class="line"> */</div><div class="line">public interface ICache &#123;</div><div class="line">    &lt;T&gt; Observable&lt;T&gt; get(String key, Class&lt;T&gt; cls);</div><div class="line"></div><div class="line">    &lt;T&gt; void put(String key, T t);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h4 id="2-内存存储的实现"><a href="#2-内存存储的实现" class="headerlink" title="2.内存存储的实现"></a>2.内存存储的实现</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Created by wukewei on 16/6/19.</div><div class="line"> */</div><div class="line">public class MemoryCache implements ICache&#123;</div><div class="line"></div><div class="line">    private LruCache&lt;String, String&gt; mCache;</div><div class="line"></div><div class="line">    public MemoryCache() &#123;</div><div class="line">        final int maxMemory = (int) Runtime.getRuntime().maxMemory();</div><div class="line">        final int cacheSize = maxMemory / 8;</div><div class="line">        mCache = new LruCache&lt;String, String&gt;(cacheSize) &#123;</div><div class="line">            @Override</div><div class="line">            protected int sizeOf(String key, String value) &#123;</div><div class="line">                try &#123;</div><div class="line">                    return value.getBytes(&quot;UTF-8&quot;).length;</div><div class="line">                &#125; catch (UnsupportedEncodingException e) &#123;</div><div class="line">                    e.printStackTrace();</div><div class="line">                    return value.getBytes().length;</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Override</div><div class="line">    public &lt;T&gt; Observable&lt;T&gt; get(final String key, final Class&lt;T&gt; cls) &#123;</div><div class="line">        return Observable.create(new Observable.OnSubscribe&lt;T&gt;() &#123;</div><div class="line">            @Override</div><div class="line">            public void call(Subscriber&lt;? super T&gt; subscriber) &#123;</div><div class="line"></div><div class="line">                String result = mCache.get(key);</div><div class="line"></div><div class="line">                if (subscriber.isUnsubscribed()) &#123;</div><div class="line">                    return;</div><div class="line">                &#125;</div><div class="line"></div><div class="line">                if (TextUtils.isEmpty(result)) &#123;</div><div class="line">                    subscriber.onNext(null);</div><div class="line">                &#125; else &#123;</div><div class="line">                    T t = new Gson().fromJson(result, cls);</div><div class="line">                    subscriber.onNext(t);</div><div class="line">                &#125;</div><div class="line"></div><div class="line">                subscriber.onCompleted();</div><div class="line">            &#125;</div><div class="line">        &#125;);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Override</div><div class="line">    public &lt;T&gt; void put(String key, T t) &#123;</div><div class="line">        if (null != t) &#123;</div><div class="line">            mCache.put(key, new Gson().toJson(t));</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public void clearMemory(String key) &#123;</div><div class="line">        mCache.remove(key);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h4 id="磁盘存储的实现"><a href="#磁盘存储的实现" class="headerlink" title="磁盘存储的实现"></a>磁盘存储的实现</h4> <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div><div class="line">125</div><div class="line">126</div><div class="line">127</div><div class="line">128</div><div class="line">129</div><div class="line">130</div><div class="line">131</div><div class="line">132</div><div class="line">133</div><div class="line">134</div><div class="line">135</div><div class="line">136</div><div class="line">137</div><div class="line">138</div><div class="line">139</div><div class="line">140</div><div class="line">141</div><div class="line">142</div><div class="line">143</div><div class="line">144</div><div class="line">145</div><div class="line">146</div><div class="line">147</div><div class="line">148</div><div class="line">149</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Created by wukewei on 16/6/19.</div><div class="line"> */</div><div class="line">public class DiskCache implements ICache&#123;</div><div class="line"></div><div class="line">    private static final String NAME = &quot;.db&quot;;</div><div class="line">    public static long OTHER_CACHE_TIME = 10 * 60 * 1000;</div><div class="line">    public static long WIFI_CACHE_TIME = 30 * 60 * 1000;</div><div class="line">    File fileDir;</div><div class="line">    public DiskCache() &#123;</div><div class="line">        fileDir = CacheLoader.getApplication().getCacheDir();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Override</div><div class="line">    public &lt;T&gt; Observable&lt;T&gt; get(final String key, final Class&lt;T&gt; cls) &#123;</div><div class="line">        return Observable.create(new Observable.OnSubscribe&lt;T&gt;() &#123;</div><div class="line">            @Override</div><div class="line">            public void call(Subscriber&lt;? super T&gt; subscriber) &#123;</div><div class="line"></div><div class="line">                T t = (T) getDiskData1(key + NAME);</div><div class="line"></div><div class="line">                if (subscriber.isUnsubscribed()) &#123;</div><div class="line">                    return;</div><div class="line">                &#125;</div><div class="line"></div><div class="line">                if (t == null) &#123;</div><div class="line">                    subscriber.onNext(null);</div><div class="line">                &#125; else &#123;</div><div class="line">                    subscriber.onNext(t);</div><div class="line">                &#125;</div><div class="line"></div><div class="line">                subscriber.onCompleted();</div><div class="line">            &#125;</div><div class="line">        &#125;)</div><div class="line">                .subscribeOn(Schedulers.io())</div><div class="line">                .observeOn(AndroidSchedulers.mainThread());</div><div class="line"></div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Override</div><div class="line">    public &lt;T&gt; void put(final String key, final T t) &#123;</div><div class="line">        Observable.create(new Observable.OnSubscribe&lt;T&gt;() &#123;</div><div class="line">            @Override</div><div class="line">            public void call(Subscriber&lt;? super T&gt; subscriber) &#123;</div><div class="line"></div><div class="line">                boolean isSuccess = isSave(key + NAME, t);</div><div class="line"></div><div class="line">                if (!subscriber.isUnsubscribed() &amp;&amp; isSuccess) &#123;</div><div class="line"></div><div class="line">                    subscriber.onNext(t);</div><div class="line">                    subscriber.onCompleted();</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;)</div><div class="line">                .subscribeOn(Schedulers.io())</div><div class="line">                .observeOn(AndroidSchedulers.mainThread())</div><div class="line">                .subscribe();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    /**</div><div class="line">     * 保存数据</div><div class="line">     */</div><div class="line">    private &lt;T&gt; boolean isSave(String fileName, T t) &#123;</div><div class="line">        File file = new File(fileDir, fileName);</div><div class="line"></div><div class="line">        ObjectOutputStream objectOut = null;</div><div class="line">        boolean isSuccess = false;</div><div class="line">        try &#123;</div><div class="line">            FileOutputStream out = new FileOutputStream(file);</div><div class="line">                    objectOut = new ObjectOutputStream(out);</div><div class="line">            objectOut.writeObject(t);</div><div class="line">            objectOut.flush();</div><div class="line">            isSuccess=true;</div><div class="line">        &#125; catch (IOException e) &#123;</div><div class="line">            Log.e(&quot;写入缓存错误&quot;,e.getMessage());</div><div class="line">        &#125; catch (Exception e) &#123;</div><div class="line">            Log.e(&quot;写入缓存错误&quot;,e.getMessage());</div><div class="line">        &#125; finally &#123;</div><div class="line">            closeSilently(objectOut);</div><div class="line">        &#125;</div><div class="line">        return isSuccess;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    /**</div><div class="line">     * 获取保存的数据</div><div class="line">     */</div><div class="line">    private Object getDiskData1(String fileName) &#123;</div><div class="line">        File file = new File(fileDir, fileName);</div><div class="line"></div><div class="line">        if (isCacheDataFailure(file)) &#123;</div><div class="line">            return null;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        if (!file.exists()) &#123;</div><div class="line">            return null;</div><div class="line">        &#125;</div><div class="line">        Object o = null;</div><div class="line">        ObjectInputStream read = null;</div><div class="line">        try &#123;</div><div class="line">            read = new ObjectInputStream(new FileInputStream(file));</div><div class="line">            o = read.readObject();</div><div class="line">        &#125; catch (StreamCorruptedException e) &#123;</div><div class="line">            Log.e(&quot;读取错误&quot;, e.getMessage());</div><div class="line">        &#125; catch (IOException e) &#123;</div><div class="line">            Log.e(&quot;读取错误&quot;, e.getMessage());</div><div class="line">        &#125; catch (ClassNotFoundException e) &#123;</div><div class="line">            Log.e(&quot;错误&quot;, e.getMessage());</div><div class="line">        &#125; finally &#123;</div><div class="line">            closeSilently(read);</div><div class="line">        &#125;</div><div class="line">        return o;</div><div class="line">    &#125;</div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line">    private void closeSilently(Closeable closeable) &#123;</div><div class="line">        if (closeable != null) &#123;</div><div class="line">            try &#123;</div><div class="line">                closeable.close();</div><div class="line">            &#125; catch (Exception ignored) &#123;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line">    /**</div><div class="line">     * 判断缓存是否已经失效</div><div class="line">     */</div><div class="line">    private boolean isCacheDataFailure(File dataFile) &#123;</div><div class="line">        if (!dataFile.exists()) &#123;</div><div class="line">            return false;</div><div class="line">        &#125;</div><div class="line">        long existTime = System.currentTimeMillis() - dataFile.lastModified();</div><div class="line">        boolean failure = false;</div><div class="line">        if (NetWorkUtil.getNetworkType(CacheLoader.getApplication()) == NetWorkUtil.NETTYPE_WIFI) &#123;</div><div class="line">            failure = existTime &gt; WIFI_CACHE_TIME ? true : false;</div><div class="line">        &#125; else &#123;</div><div class="line">            failure = existTime &gt; OTHER_CACHE_TIME ? true : false;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        return failure;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public void clearDisk(String key) &#123;</div><div class="line">        File file = new File(fileDir, key + NAME);</div><div class="line">        if (file.exists()) file.delete();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p> isCacheDataFailure（）方式中就是判断当前的数据是否失效，我是根据当前的网络状况来分wifi状况和非wifi状况，wifi状态下数据过期时间比较短，其他状态过期时间比较长。</p>
+<h4 id="CacheLoader的设计"><a href="#CacheLoader的设计" class="headerlink" title="CacheLoader的设计"></a>CacheLoader的设计</h4> <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div></pre></td><td class="code"><pre><div class="line">**</div><div class="line"> * Created by wukewei on 16/6/19.</div><div class="line"> */</div><div class="line">public class CacheLoader &#123;</div><div class="line">    private static Application application;</div><div class="line"></div><div class="line">    public static Application getApplication() &#123;</div><div class="line">        return application;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    private ICache mMemoryCache, mDiskCache;</div><div class="line"></div><div class="line">    private CacheLoader() &#123;</div><div class="line"></div><div class="line">        mMemoryCache = new MemoryCache();</div><div class="line">        mDiskCache = new DiskCache();</div><div class="line">    &#125;</div><div class="line">    private static CacheLoader loader;</div><div class="line"></div><div class="line">    public static CacheLoader getInstance(Context context) &#123;</div><div class="line">        application = (Application) context.getApplicationContext();</div><div class="line">        if (loader == null) &#123;</div><div class="line">            synchronized (CacheLoader.class) &#123;</div><div class="line">                if (loader == null) &#123;</div><div class="line">                    loader = new CacheLoader();</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        return loader;</div><div class="line">    &#125;</div><div class="line"></div><div class="line"></div><div class="line">    public &lt;T&gt; Observable&lt;T&gt; asDataObservable(String key, Class&lt;T&gt; cls, NetworkCache&lt;T&gt; networkCache) &#123;</div><div class="line"></div><div class="line">        Observable observable = Observable.concat(</div><div class="line">                memory(key, cls),</div><div class="line">                disk(key, cls),</div><div class="line">                network(key, cls, networkCache))</div><div class="line">                .first(new Func1&lt;T, Boolean&gt;() &#123;</div><div class="line">                    @Override</div><div class="line">                    public Boolean call(T t) &#123;</div><div class="line">                        return t != null;</div><div class="line">                    &#125;</div><div class="line">                &#125;);</div><div class="line">        return observable;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    private &lt;T&gt; Observable&lt;T&gt; memory(String key, Class&lt;T&gt; cls) &#123;</div><div class="line"></div><div class="line">        return mMemoryCache.get(key, cls).doOnNext(new Action1&lt;T&gt;() &#123;</div><div class="line">            @Override</div><div class="line">            public void call(T t) &#123;</div><div class="line">                if (null != t) &#123;</div><div class="line">                    Log.d(&quot;我是来自内存&quot;,&quot;我是来自内存&quot;);</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    private &lt;T&gt; Observable&lt;T&gt; disk(final String key, Class&lt;T&gt; cls) &#123;</div><div class="line"></div><div class="line">        return mDiskCache.get(key, cls)</div><div class="line">                .doOnNext(new Action1&lt;T&gt;() &#123;</div><div class="line">                    @Override</div><div class="line">                    public void call(T t) &#123;</div><div class="line">                        if (null != t) &#123;</div><div class="line">                            Log.d(&quot;我是来自磁盘&quot;,&quot;我是来自磁盘&quot;);</div><div class="line">                            mMemoryCache.put(key, t);</div><div class="line">                        &#125;</div><div class="line">                    &#125;</div><div class="line">                &#125;);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    private &lt;T&gt; Observable&lt;T&gt; network(final String key, Class&lt;T&gt; cls</div><div class="line">            , NetworkCache&lt;T&gt; networkCache) &#123;</div><div class="line"></div><div class="line">        return networkCache.get(key, cls)</div><div class="line">                .doOnNext(new Action1&lt;T&gt;() &#123;</div><div class="line">                    @Override</div><div class="line">                    public void call(T t) &#123;</div><div class="line">                        if (null != t) &#123;</div><div class="line">                            Log.d(&quot;我是来自网络&quot;,&quot;我是来自网络&quot;);</div><div class="line">                            mDiskCache.put(key, t);</div><div class="line">                            mMemoryCache.put(key, t);</div><div class="line">                        &#125;</div><div class="line">                    &#125;</div><div class="line">                &#125;);</div><div class="line">    &#125;</div><div class="line"></div><div class="line"></div><div class="line">    public void clearMemory(String key) &#123;</div><div class="line">        ((MemoryCache)mMemoryCache).clearMemory(key);</div><div class="line">    &#125;</div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line">    public void clearMemoryDisk(String key) &#123;</div><div class="line">        ((MemoryCache)mMemoryCache).clearMemory(key);</div><div class="line">        ((DiskCache)mDiskCache).clearDisk(key);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h4 id="网络获取的NetworkCache"><a href="#网络获取的NetworkCache" class="headerlink" title="网络获取的NetworkCache"></a>网络获取的NetworkCache</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Created by wukewei on 16/6/19.</div><div class="line"> */</div><div class="line">public abstract class NetworkCache&lt;T&gt; &#123;</div><div class="line">    public abstract Observable&lt;T&gt; get(String key, final Class&lt;T&gt; cls);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>6.接下来看怎么使用<br> <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">/**</div><div class="line"> * Created by wukewei on 16/5/30.</div><div class="line"> */</div><div class="line">public class ItemPresenter extends BasePresenter&lt;ItemContract.View&gt; implements ItemContract.Presenter &#123;</div><div class="line"></div><div class="line">    private static final String key = &quot;new_list&quot;;</div><div class="line">    protected int pn = 1;</div><div class="line"></div><div class="line">    protected void replacePn() &#123;</div><div class="line">        pn = 1;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    private boolean isRefresh() &#123;</div><div class="line">        return pn == 1;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    private NetworkCache&lt;ListPopular&gt; networkCache;</div><div class="line"></div><div class="line"></div><div class="line">    public ItemPresenter(Activity activity, ItemContract.View view) &#123;</div><div class="line">        super(activity, view);</div><div class="line"></div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Override</div><div class="line">    public void getListData(String type) &#123;</div><div class="line">        if (isRefresh()) mView.showLoading();</div><div class="line">        networkCache = new NetworkCache&lt;ListPopular&gt;() &#123;</div><div class="line">            @Override</div><div class="line">            public Observable&lt;ListPopular&gt; get(String key, Class&lt;ListPopular&gt; cls) &#123;</div><div class="line">                return mHotApi.getPopular(ItemPresenter.this.pn, Constants.PAGE_SIZE, type)</div><div class="line">                        .compose(SchedulersCompat.applyIoSchedulers())</div><div class="line">                        .compose(RxResultHelper.handleResult())</div><div class="line">                        .flatMap(populars -&gt; &#123;</div><div class="line">                            ListPopular popular = new ListPopular(populars);</div><div class="line">                            return Observable.just(popular);</div><div class="line">                        &#125;);</div><div class="line">            &#125;</div><div class="line">        &#125;;</div><div class="line"></div><div class="line">        Subscription subscription  = CacheLoader.getInstance(mActivity)</div><div class="line">                .asDataObservable(key + type + ItemPresenter.this.pn, ListPopular.class, networkCache)</div><div class="line">                .map(listPopular -&gt; listPopular.data)</div><div class="line">                .subscribe(populars -&gt; &#123;</div><div class="line">                    mView.showContent();</div><div class="line">                    if (isRefresh()) &#123;</div><div class="line">                        if (populars.size() == 0) mView.showNotdata();</div><div class="line">                        mView.addRefreshData(populars);</div><div class="line">                    &#125; else &#123;</div><div class="line">                        mView.addLoadMoreData(populars);</div><div class="line">                    &#125;</div><div class="line">                &#125;, throwable -&gt; &#123;</div><div class="line">                    if (isRefresh())</div><div class="line">                    mView.showError(ErrorHanding.handleError(throwable));</div><div class="line">                    handleError(throwable);</div><div class="line">                &#125;);</div><div class="line"></div><div class="line">        addSubscrebe(subscription);</div><div class="line"></div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>一定要给个key，我是根据key来获取数据的，还要就是给个类型。但是这个我设计的这个缓存还是不是很理想，接来下想要实现的就是在传入的时候类的class都不用给明，要是有好的实现的方式，欢迎告诉我。</p>
+<h3 id="使用BehaviorSubject"><a href="#使用BehaviorSubject" class="headerlink" title="使用BehaviorSubject"></a>使用BehaviorSubject</h3><p>BehaviorSubject的实现方法，废话不多说直接上代码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Created by wukewei on 16/6/20.</div><div class="line"> */</div><div class="line">public class BehaviorSubjectFragment extends BaseFragment &#123;</div><div class="line"></div><div class="line">    public static BehaviorSubjectFragment newInstance() &#123;</div><div class="line">        BehaviorSubjectFragment fragment = new BehaviorSubjectFragment();</div><div class="line">        return fragment;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    String diskData = null;</div><div class="line">    String networkData = &quot;从服务器获取的数据&quot;;</div><div class="line">    BehaviorSubject&lt;String&gt; cache;</div><div class="line"></div><div class="line">    View mView;</div><div class="line"></div><div class="line">    @Nullable</div><div class="line">    @Override</div><div class="line">    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) &#123;</div><div class="line">        mView = inflater.inflate(R.layout.fragment_content, container, false);</div><div class="line">        init();</div><div class="line">        return mView;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    private void init() &#123;</div><div class="line">        mView.findViewById(R.id.get).setOnClickListener(new View.OnClickListener() &#123;</div><div class="line">            @Override</div><div class="line">            public void onClick(View v) &#123;</div><div class="line">                subscriptionData(new Observer&lt;String&gt;() &#123;</div><div class="line">                    @Override</div><div class="line">                    public void onCompleted() &#123;</div><div class="line"></div><div class="line">                    &#125;</div><div class="line"></div><div class="line">                    @Override</div><div class="line">                    public void onError(Throwable e) &#123;</div><div class="line"></div><div class="line">                    &#125;</div><div class="line"></div><div class="line">                    @Override</div><div class="line">                    public void onNext(String s) &#123;</div><div class="line">                        Log.d(&quot;onNext&quot;, s);</div><div class="line">                    &#125;</div><div class="line">                &#125;);</div><div class="line">            &#125;</div><div class="line">        &#125;);</div><div class="line"></div><div class="line">        mView.findViewById(R.id.memory).setOnClickListener(new View.OnClickListener() &#123;</div><div class="line">            @Override</div><div class="line">            public void onClick(View v) &#123;</div><div class="line">                BehaviorSubjectFragment.this.cache = null;</div><div class="line">            &#125;</div><div class="line">        &#125;);</div><div class="line"></div><div class="line">        mView.findViewById(R.id.memory_disk).setOnClickListener(new View.OnClickListener() &#123;</div><div class="line">            @Override</div><div class="line">            public void onClick(View v) &#123;</div><div class="line">                BehaviorSubjectFragment.this.cache = null;</div><div class="line">                BehaviorSubjectFragment.this.diskData = null;</div><div class="line">            &#125;</div><div class="line">        &#125;);</div><div class="line"></div><div class="line">    &#125;</div><div class="line"></div><div class="line">    private void loadNewWork() &#123;</div><div class="line">        Observable&lt;String&gt; o = Observable.just(networkData)</div><div class="line">                .doOnNext(new Action1&lt;String&gt;() &#123;</div><div class="line">                    @Override</div><div class="line">                    public void call(String s) &#123;</div><div class="line">                        BehaviorSubjectFragment.this.diskData = s;</div><div class="line">                        Log.d(&quot;写入磁盘&quot;, &quot;写入磁盘&quot;);</div><div class="line">                    &#125;</div><div class="line">                &#125;);</div><div class="line">        o.subscribe(new Action1&lt;String&gt;() &#123;</div><div class="line">            @Override</div><div class="line">            public void call(String s) &#123;</div><div class="line">                cache.onNext(s);</div><div class="line">            &#125;</div><div class="line">        &#125;, new Action1&lt;Throwable&gt;() &#123;</div><div class="line">            @Override</div><div class="line">            public void call(Throwable throwable) &#123;</div><div class="line"></div><div class="line">            &#125;</div><div class="line">        &#125;);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    private Subscription subscriptionData(@NonNull Observer&lt;String&gt; observer) &#123;</div><div class="line">        if (cache == null) &#123;</div><div class="line">            cache = BehaviorSubject.create();</div><div class="line">            Observable.create(new Observable.OnSubscribe&lt;String&gt;() &#123;</div><div class="line">                @Override</div><div class="line">                public void call(Subscriber&lt;? super String&gt; subscriber) &#123;</div><div class="line">                    String data = diskData;</div><div class="line">                    if (data == null) &#123;</div><div class="line">                        Log.d(&quot;来自网络&quot;, &quot;来自网络&quot;);</div><div class="line">                        loadNewWork();</div><div class="line">                    &#125; else &#123;</div><div class="line">                        Log.d(&quot;来自磁盘&quot;, &quot;来自磁盘&quot;);</div><div class="line">                        subscriber.onNext(data);</div><div class="line">                    &#125;</div><div class="line">                &#125;</div><div class="line">            &#125;)</div><div class="line">                    .subscribeOn(Schedulers.io())</div><div class="line">                    .subscribe(cache);</div><div class="line"></div><div class="line">        &#125; else &#123;</div><div class="line">            Log.d(&quot;来自内存&quot;, &quot;来自内存&quot;);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        return cache.observeOn(AndroidSchedulers.mainThread()).subscribe(observer);</div><div class="line">    &#125;</div><div class="line"></div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>其中最主要的是subscriptionData（）这个方法，就是先判断 cache是否存在要是存在的话就返回内存中数据，再去判断磁盘数据是否存在，如果存在就返回，要是前面两种都不存在的时候，再去网络中获取数据。还有最重要的是当你从网络获取数据的时候要记得保存在内存中和保存在磁盘中，在磁盘获取数据的时候把它赋值给内存。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/10/03/MVP-Rxjava-Retrofit构建项目/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="GoGo">
+      <meta itemprop="name" content="GoGo (吴克伟)">
       <meta itemprop="description" content="">
       <meta itemprop="image" content="/images/avatar.png">
     </span>
@@ -375,7 +956,7 @@
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/10/03/hello-world/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="GoGo">
+      <meta itemprop="name" content="GoGo (吴克伟)">
       <meta itemprop="description" content="">
       <meta itemprop="image" content="/images/avatar.png">
     </span>
@@ -524,9 +1105,9 @@
             
               <img class="site-author-image" itemprop="image"
                 src="/images/avatar.png"
-                alt="GoGo" />
+                alt="GoGo (吴克伟)" />
             
-              <p class="site-author-name" itemprop="name">GoGo</p>
+              <p class="site-author-name" itemprop="name">GoGo (吴克伟)</p>
               <p class="site-description motion-element" itemprop="description"></p>
           </div>
 
@@ -537,7 +1118,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-count">6</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -550,7 +1131,7 @@
               
               <div class="site-state-item site-state-tags">
                 
-                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-count">4</span>
                   <span class="site-state-item-name">标签</span>
                 
               </div>
@@ -561,6 +1142,20 @@
           
 
           <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/zj-wukewei" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="http://www.jianshu.com/u/80402b2535d3" target="_blank" title="简书">
+                    
+                      <i class="fa fa-fw fa-简书"></i>简书</a>
+                </span>
+              
             
           </div>
 
@@ -593,7 +1188,7 @@
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">GoGo</span>
+  <span class="author" itemprop="copyrightHolder">GoGo (吴克伟)</span>
 
   
 </div>
