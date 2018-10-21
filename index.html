@@ -229,6 +229,138 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/10/21/android组件化登录的思考/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="GoGo (吴克伟)">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GoGo's home">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/10/21/android组件化登录的思考/" itemprop="url">android组件化登录的思考</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-10-21T21:07:23+08:00">
+                2018-10-21
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h3 id="登录问题思考"><a href="#登录问题思考" class="headerlink" title="登录问题思考"></a>登录问题思考</h3><p> 很久没有写文章了，因为一些个人的原因，但是现在一切问题都解决了。1年前写了一篇android组件化的学习，里面提到了commonbusiness里面会包含登录模块，但是后来经过实践表明这是一个不理想的决定，因为在各个模块当然运行的时候大多数的功能都是会依赖登录模块的，这样会造成各个模块都要登录。<br> 现在的做法是把登录模块单独提取出来，也能单独运行， 登录模块运行之后，登录成功之后其它模块的app也能感知到登录成功之后的用户数据。</p>
+<h3 id="运用内容提供者进行app之间通讯"><a href="#运用内容提供者进行app之间通讯" class="headerlink" title="运用内容提供者进行app之间通讯"></a>运用内容提供者进行app之间通讯</h3><p> 登录模块定义一个UserContentProvider代码如下：</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div></pre></td><td class="code"><pre><div class="line">public class UserContentProvider extends DaggerContentProvider &#123;</div><div class="line"></div><div class="line"></div><div class="line">    private static final int SUCCESS = 1;</div><div class="line"></div><div class="line">    private final String[] columnNames = new String[]&#123;AppConstats.TOKEN, AppConstats.UID&#125;;</div><div class="line">    static UriMatcher mUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);</div><div class="line"></div><div class="line">    static &#123;</div><div class="line">        mUriMatcher.addURI(&quot;com.modularization.android.login&quot;, &quot;user&quot;, SUCCESS);    //uri规则可自己定义，但一定和清单文件一直</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Inject</div><div class="line">    RxSharedPreferences mRxSharedPreferences;</div><div class="line"></div><div class="line">    @Override</div><div class="line">    public boolean onCreate() &#123;</div><div class="line">        return super.onCreate();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Nullable</div><div class="line">    @Override</div><div class="line">    public Cursor query(@NonNull Uri uri, @Nullable String[] strings, @Nullable String s, @Nullable String[] strings1, @Nullable String s1) &#123;</div><div class="line">        String token = mRxSharedPreferences.getString(AppConstats.TOKEN).get();</div><div class="line">        String uId = mRxSharedPreferences.getString(AppConstats.UID).get();</div><div class="line">        MatrixCursor cursor = new MatrixCursor(columnNames);</div><div class="line">        cursor.addRow(new String[] &#123;token, uId&#125;);</div><div class="line">        return cursor;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Nullable</div><div class="line">    @Override</div><div class="line">    public String getType(@NonNull Uri uri) &#123;</div><div class="line">        return null;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Nullable</div><div class="line">    @Override</div><div class="line">    public Uri insert(@NonNull Uri uri, @Nullable ContentValues contentValues) &#123;</div><div class="line">        return null;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Override</div><div class="line">    public int delete(@NonNull Uri uri, @Nullable String s, @Nullable String[] strings) &#123;</div><div class="line">        return 0;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Override</div><div class="line">    public int update(@NonNull Uri uri, @Nullable ContentValues contentValues, @Nullable String s, @Nullable String[] strings) &#123;</div><div class="line">        return 0;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p> 我这里简单的使用了RxSharedPreferences去保存登录成功之后的数据，提供了query方法。</p>
+<p> 登录的伪代码</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">String token  = UUID.randomUUID().toString();</div><div class="line">         String uId = &quot;123456&quot;;</div><div class="line">         SharedPreferences.Editor editor = mSharedPreferences.edit();</div><div class="line">         editor.putString(AppConstats.TOKEN, token);</div><div class="line">         editor.putString(AppConstats.UID, uId);</div><div class="line">         editor.apply();</div><div class="line">         getContentResolver().notifyChange(Uri.parse(AppConstats.USER_URI), null);</div></pre></td></tr></table></figure>
+<p>getContentResolver().notifyChange(）方法来通知其它模块app变化了。</p>
+<p>因为在commonbusiness的UserSystem类，</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div></pre></td><td class="code"><pre><div class="line">@Singleton</div><div class="line">public class UserSystem &#123;</div><div class="line">    private static final String KEY_TOKEN = &quot;token&quot;;</div><div class="line">    private static final String KEY_USER_ID = &quot;uid&quot;;</div><div class="line"></div><div class="line">    private BehaviorSubject&lt;TokenEntity&gt; mTokenEntityBehaviorSubject = BehaviorSubject.create();</div><div class="line"></div><div class="line">    private Context mContext;</div><div class="line"></div><div class="line">    @Inject</div><div class="line">    public UserSystem(Context context) &#123;</div><div class="line">        this.mContext = context;</div><div class="line">        loadTokenEntity();</div><div class="line">        context.getContentResolver().registerContentObserver(Uri.parse(AppConstats.USER_URI), false, new ContentObserver(null) &#123;</div><div class="line">            @Override</div><div class="line">            public void onChange(boolean selfChange) &#123;</div><div class="line">                super.onChange(selfChange);</div><div class="line">                loadTokenEntity();</div><div class="line">            &#125;</div><div class="line">        &#125;);</div><div class="line">    &#125;</div><div class="line"></div><div class="line"></div><div class="line">    private void loadTokenEntity() &#123;</div><div class="line">        ContentResolver resolver = mContext.getContentResolver();</div><div class="line">        Uri uri = Uri.parse(AppConstats.USER_URI);</div><div class="line">        Cursor cursor = resolver.query(uri, null, null, null, null);</div><div class="line">        if (cursor != null) &#123;</div><div class="line">            while (cursor.moveToNext()) &#123;</div><div class="line">                String token = cursor.getString(0);</div><div class="line">                String uId = cursor.getString(1);</div><div class="line">                TokenEntity entity = new TokenEntity(uId, token);</div><div class="line">                mTokenEntityBehaviorSubject.onNext(entity);</div><div class="line">            &#125;</div><div class="line">            cursor.close();</div><div class="line">        &#125; else &#123;</div><div class="line">            ToastUtils.show(mContext, &quot;请安装登录模块&quot;);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public Observable&lt;TokenEntity&gt; getTokenEntityObservable() &#123;</div><div class="line">        return mTokenEntityBehaviorSubject;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>registerContentObserver方法能监听到数据的变化，再去从新获取数据这样在登录模块单独运行的时候，登录成功其它模块的app也能感知得到变化，这样就只要登录一次就可以了。</p>
+<h3 id="其它思考"><a href="#其它思考" class="headerlink" title="其它思考"></a>其它思考</h3><p>因为每个app接口要是你没有登录你都会返回一个错误码，全局app都有个错误处理的方法，我的如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">public class ResponseListenerImpl implements ResponseErrorListener &#123;</div><div class="line">    @Override</div><div class="line">    public void handleResponseError(Context context, Throwable t) &#123;</div><div class="line">        Timber.e(t);</div><div class="line">        if (t instanceof ResponseException) &#123;</div><div class="line"></div><div class="line">        &#125;</div><div class="line">        final String msg = ErrorMessageFactory.create(context, (Exception) t);</div><div class="line">        ToastUtils.show(context, msg);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>在这里面你就可以获取那个code，然后采用android:scheme 通过uri跳转到登录模块的LoginActivity,这样就算各个模块单独运行也会让你感觉在一个app之内一个，比如A模块app服务端返回要从新登录的code，这样跳转到Login模块的app中走完登录流程，采用内容提供者来通知A模块我登录完成了，A模块获取用户数据，再进行需要登录之后的操作，代码在我的github里面的<a href="https://github.com/zj-wukewei/ModularizationExample" target="_blank" rel="external">ModularizationExample项目</a></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/11/09/Lifecycle学习/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1505,149 +1637,6 @@ if (mPresenter != null) mPresenter.detachView();
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/10/03/MVP-Rxjava-Retrofit构建项目/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="GoGo (吴克伟)">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="GoGo's home">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/10/03/MVP-Rxjava-Retrofit构建项目/" itemprop="url">MVP+Rxjava+Retrofit构建项目</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-03T22:24:13+08:00">
-                2017-10-03
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>第一次写文章，不好之处还请谅解。2015最值得android程序猿去学习的就是rxjava了，关于rxjava就不再多描述了。本文是介绍怎么使用mvp+rxjava+retrofit来构建一个新的项目，项目采用mvp的方式，参考了google的官方mvp项目。Hot是关于微信头条分享的app，<a href="https://github.com/zj-wukewei/Hot" target="_blank" rel="external">项目地址</a></p>
-<h3 id="项目介绍"><a href="#项目介绍" class="headerlink" title="项目介绍"></a>项目介绍</h3><h4 id="BaseActivity的设计"><a href="#BaseActivity的设计" class="headerlink" title="BaseActivity的设计:"></a>BaseActivity的设计:</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Created by wukewei on 16/5/26.</div><div class="line"> */</div><div class="line">public abstract class BaseActivity&lt;T extends IPresenter&gt; extends AppCompatActivity &#123;</div><div class="line"></div><div class="line">    protected T mPresenter;</div><div class="line">    protected Activity mContext;</div><div class="line"></div><div class="line">    @Override</div><div class="line">    protected void onCreate(@Nullable Bundle savedInstanceState) &#123;</div><div class="line">        super.onCreate(savedInstanceState);</div><div class="line">        setContentView(getLayout());</div><div class="line">        ButterKnife.bind(this);</div><div class="line">        mContext = this;</div><div class="line">        mPresenter = getPresenter();</div><div class="line">        initEventAndData();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    protected void setCommonBackToolBack(Toolbar toolbar, String title) &#123;</div><div class="line">        toolbar.setTitle(title);</div><div class="line">        setSupportActionBar(toolbar);</div><div class="line">        getSupportActionBar().setDisplayHomeAsUpEnabled(true);</div><div class="line">        getSupportActionBar().setDisplayShowHomeEnabled(true);</div><div class="line">        toolbar.setNavigationOnClickListener(v -&gt; onBackPressed());</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Override</div><div class="line">    protected void onDestroy() &#123;</div><div class="line">        super.onDestroy();</div><div class="line">        ButterKnife.unbind(this);</div><div class="line">        if (mPresenter != null) mPresenter.detachView();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    protected abstract T getPresenter();</div><div class="line">    protected abstract int getLayout();</div><div class="line">    protected abstract void initEventAndData();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>最主要的设置了presenter的泛型，并且提供了初始化的函数  protected abstract T getPresenter();。</p>
-<h4 id="BasePresenter的设计"><a href="#BasePresenter的设计" class="headerlink" title="BasePresenter的设计"></a>BasePresenter的设计</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Created by wukewei on 16/5/26.</div><div class="line"> */</div><div class="line">public abstract class BasePresenter&lt;T extends IView&gt; implements IPresenter &#123;</div><div class="line"></div><div class="line">    protected Activity mActivity;</div><div class="line">    protected T mView;</div><div class="line">    protected CompositeSubscription mCompositeSubscription;</div><div class="line">   // protected static final HotApi mHotApi = HotFactory.getHotApi();</div><div class="line"></div><div class="line">    public BasePresenter(Activity activity, T view) &#123;</div><div class="line">        this.mActivity = activity;</div><div class="line">        this.mView = view;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    protected void handleError(Throwable throwable) &#123;</div><div class="line">        ToastUtil.showShort(mActivity, ErrorHanding.handleError(throwable));</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    protected void unSubscribe() &#123;</div><div class="line">        if (mCompositeSubscription != null) &#123;</div><div class="line">            mCompositeSubscription.unsubscribe();</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    protected void addSubscrebe(Subscription subscription) &#123;</div><div class="line">        if (mCompositeSubscription == null) &#123;</div><div class="line">            mCompositeSubscription = new CompositeSubscription();</div><div class="line">        &#125;</div><div class="line">        mCompositeSubscription.add(subscription);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Override</div><div class="line">    public void detachView() &#123;</div><div class="line">        this.mView = null;</div><div class="line">        unSubscribe();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>也采用了范型来绑定view，使用了CompositeSubscription来进行避免内存的泄漏。</p>
-<h4 id="Api的设计"><a href="#Api的设计" class="headerlink" title="Api的设计"></a>Api的设计</h4><p>   在实际情况中每个公司的api的设计都是不一样的，我采用如下的设计形式。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Created by wukewei on 16/5/26.</div><div class="line"> */</div><div class="line">public class ApiResponse&lt;T&gt; &#123;</div><div class="line">    </div><div class="line">    public static final int SUCCESS_CODE = 200;</div><div class="line"></div><div class="line">    private int code;</div><div class="line">    private String msg;</div><div class="line">    private T newslist;</div><div class="line"></div><div class="line">    public int getCode() &#123;</div><div class="line">        return code;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public void setCode(int code) &#123;</div><div class="line">        this.code = code;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public String getMsg() &#123;</div><div class="line">        return msg;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public void setMsg(String msg) &#123;</div><div class="line">        this.msg = msg;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public T getNewsList() &#123;</div><div class="line">        return newslist;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public void setNewsList(T newsList) &#123;</div><div class="line">        this.newslist = newsList;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public boolean isSuccess() &#123;</div><div class="line">        if (this.code == SUCCESS_CODE) &#123;</div><div class="line">            return true;</div><div class="line">        &#125; else &#123;</div><div class="line">            return false;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>你们可以根据自己公司的实际情况修改返回的成功码。</p>
-<h4 id="Rxjava的一些设计："><a href="#Rxjava的一些设计：" class="headerlink" title="Rxjava的一些设计："></a>Rxjava的一些设计：</h4><p>大家都知道rxjava就是能灵活的在线程之间进行切换，在使用的时候我使用了Transformer操作符。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Created by wukewei on 16/5/26.</div><div class="line"> */</div><div class="line">public class SchedulersCompat &#123;</div><div class="line"></div><div class="line">    private final static Observable.Transformer ioTransformer = o -&gt; o.subscribeOn(Schedulers.io())</div><div class="line">            .observeOn(AndroidSchedulers.mainThread());</div><div class="line"></div><div class="line">    public static &lt;T&gt; Observable.Transformer&lt;T, T&gt; applyIoSchedulers() &#123;</div><div class="line">        return (Observable.Transformer&lt;T, T&gt;) ioTransformer;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>在数据处理的时候，</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Created by wukewei on 16/5/26.</div><div class="line"> */</div><div class="line">public class RxResultHelper &#123;</div><div class="line"></div><div class="line">    public static &lt;T&gt; Observable.Transformer&lt;ApiResponse&lt;T&gt;, T&gt; handleResult() &#123;</div><div class="line">        return apiResponseObservable -&gt; apiResponseObservable.flatMap((Func1&lt;ApiResponse&lt;T&gt;, Observable&lt;T&gt;&gt;) tApiResponse -&gt; &#123;</div><div class="line">            if (tApiResponse.isSuccess()) &#123;</div><div class="line">                //表示成功</div><div class="line">                return createData(tApiResponse.getNewsList());</div><div class="line">            &#125; else &#123;</div><div class="line">                return Observable.error(new ServerException(tApiResponse.getMsg()));</div><div class="line">            &#125;</div><div class="line">        &#125;);</div><div class="line">    &#125;</div><div class="line"></div><div class="line"></div><div class="line">    public static &lt;T&gt; Observable&lt;T&gt; createData(T t) &#123;</div><div class="line">        return Observable.create(new Observable.OnSubscribe&lt;T&gt;() &#123;</div><div class="line">            @Override</div><div class="line">            public void call(Subscriber&lt;? super T&gt; subscriber) &#123;</div><div class="line">                try &#123;</div><div class="line">                    subscriber.onNext(t);</div><div class="line">                    subscriber.onCompleted();</div><div class="line">                &#125; catch (Exception e) &#123;</div><div class="line">                    subscriber.onError(e);</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>在这里你可以根据自己的实际情况来添加，大部分app都是有token一说，你可以在这里判断当token过期的时候可以跳到登录界面。<br>在项目中的时候就是</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">Subscription subscription = mHotApi.getPopular(this.pn, Constants.PAGE_SIZE, type)</div><div class="line">                  .compose(SchedulersCompat.applyIoSchedulers())</div><div class="line">                  .compose(RxResultHelper.handleResult())</div><div class="line">                  .subscribe(populars -&gt; &#123;</div><div class="line">                      mView.showContent();</div><div class="line">                      if (isRefresh()) &#123;</div><div class="line">                          if (populars.size() == 0) mView.showNotdata();</div><div class="line">                          mView.addRefreshData(populars);</div><div class="line">                      &#125; else &#123;</div><div class="line">                          mView.addLoadMoreData(populars);</div><div class="line">                      &#125;</div><div class="line">                  &#125;, throwable -&gt; &#123;</div><div class="line">                      mView.showError(ErrorHanding.handleError(throwable));</div><div class="line">                      handleError(throwable);</div><div class="line">                  &#125;);</div><div class="line">          addSubscrebe(subscription);</div></pre></td></tr></table></figure>
-<p>是不是觉得使用起来非常的爽啊，还有一个就是在实际情况中很多一部分请求要设置一些数据好比来自android的还是ios的，或者添加一些token在请求中，本项目没有使用token，但是有个apikey代码如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div></pre></td><td class="code"><pre><div class="line">**</div><div class="line"> * Created by wukewei on 16/5/26.</div><div class="line"> */</div><div class="line">public class OkHttpManager &#123;</div><div class="line"></div><div class="line">    private static OkHttpClient mOkHttpClient;</div><div class="line"></div><div class="line">    public static OkHttpClient getInstance() &#123;</div><div class="line"></div><div class="line">        if (mOkHttpClient == null) &#123;</div><div class="line">            synchronized (OkHttpManager.class) &#123;</div><div class="line">                if (mOkHttpClient == null) &#123;</div><div class="line">                   HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();</div><div class="line">                   loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);</div><div class="line">                    Interceptor apikey = chain -&gt; chain.proceed(chain.request().newBuilder()</div><div class="line">                            .addHeader(&quot;apikey&quot;, Constants.Api_Key).build());</div><div class="line"></div><div class="line">                    File cacheFile = new File(App.getAppContext().getCacheDir(), &quot;cache&quot;);</div><div class="line">                    Cache cache = new Cache(cacheFile, 1024 * 1024 * 100); //100Mb</div><div class="line">                    mOkHttpClient = new OkHttpClient.Builder()</div><div class="line">                            .readTimeout(Constants.HTTP_CONNECT_TIMEOUT, TimeUnit.MILLISECONDS)</div><div class="line">                            .connectTimeout(Constants.HTTP_CONNECT_TIMEOUT, TimeUnit.MILLISECONDS)</div><div class="line">                            .addInterceptor(apikey)</div><div class="line">                            .addInterceptor(loggingInterceptor)</div><div class="line">                            .addNetworkInterceptor(new HttpCacheInterceptor())</div><div class="line">                            .cache(cache)</div><div class="line">                            .build();</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        return mOkHttpClient;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    static class HttpCacheInterceptor implements Interceptor &#123;</div><div class="line"></div><div class="line">        @Override</div><div class="line">        public Response intercept(Chain chain) throws IOException &#123;</div><div class="line">            Request request = chain.request();</div><div class="line">            if (!NetWorkUtil.isNetConnected(App.getAppContext())) &#123;</div><div class="line">                request = request.newBuilder()</div><div class="line">                        .cacheControl(CacheControl.FORCE_CACHE)</div><div class="line">                        .build();</div><div class="line">                Log.d(&quot;Okhttp&quot;, &quot;no network&quot;);</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            Response originalResponse = chain.proceed(request);</div><div class="line">            if (NetWorkUtil.isNetConnected(App.getAppContext())) &#123;</div><div class="line">                //有网的时候读接口上的@Headers里的配置，你可以在这里进行统一的设置</div><div class="line">                String cacheControl = request.cacheControl().toString();</div><div class="line">                return originalResponse.newBuilder()</div><div class="line">                        .header(&quot;Cache-Control&quot;, cacheControl)</div><div class="line">                        .removeHeader(&quot;Pragma&quot;)</div><div class="line">                        .build();</div><div class="line">            &#125; else &#123;</div><div class="line">                return originalResponse.newBuilder()</div><div class="line">                        .header(&quot;Cache-Control&quot;, &quot;public, only-if-cached, max-stale=2419200&quot;)</div><div class="line">                        .removeHeader(&quot;Pragma&quot;)</div><div class="line">                        .build();</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>你可以在获取本地token的时候，当有的时候加上即可。</p>
-<h4 id="7月13日更新：DataManager"><a href="#7月13日更新：DataManager" class="headerlink" title="7月13日更新：DataManager"></a>7月13日更新：DataManager</h4><p>网上有很多在mvp的时候关于数据层的设计，我这边是添加了DataManager来管理app数据,在p层是不关心数据的来源，无论是网络的还是本地缓存的数据，这个设计参考了别的大神的实现。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Created by wukewei on 16/7/12.</div><div class="line"> * 这个类是管理app的数据来源无论从网络获取.内存.还是磁盘</div><div class="line"> */</div><div class="line">public class DataManager &#123;</div><div class="line"></div><div class="line">    private static Gson gson;</div><div class="line">    private static RxBus rxBus;</div><div class="line">    private static HotApi mHotApi;</div><div class="line">    private static CacheLoader cacheLoader;</div><div class="line"></div><div class="line">    private Handler mHandler;</div><div class="line">    private DataManager() &#123;&#125;</div><div class="line">    public static DataManager getInstance() &#123;</div><div class="line">        return DataManagerHolder.INSTANCE;</div><div class="line">    &#125;</div><div class="line"></div><div class="line"></div><div class="line">    public static class DataManagerHolder &#123;</div><div class="line">        private final  static DataManager INSTANCE = new DataManager();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public void initService() &#123;</div><div class="line">        gson = new Gson();</div><div class="line">        rxBus = RxBus.getDefault();</div><div class="line">        cacheLoader = CacheLoader.getInstance(App.getAppContext());</div><div class="line">        HandlerThread ioThread = new HandlerThread(&quot;IoThread&quot;);</div><div class="line">        ioThread.start();</div><div class="line">        mHandler = new Handler(ioThread.getLooper());</div><div class="line">        mHandler.post(new Runnable() &#123;</div><div class="line">            @Override</div><div class="line">            public void run() &#123;</div><div class="line">                mHotApi = HotFactory.getHotApi();</div><div class="line">            &#125;</div><div class="line">        &#125;);</div><div class="line">    &#125;</div><div class="line"></div><div class="line"></div><div class="line">    /***</div><div class="line">     * 获取分类的类型</div><div class="line">     * @param</div><div class="line">     * @param</div><div class="line">     * @return</div><div class="line">     */</div><div class="line">    public List&lt;String&gt; getTabs() &#123;</div><div class="line">        List&lt;String&gt; tabs = new ArrayList&lt;&gt;();</div><div class="line">        tabs.add(&quot;科技&quot;);</div><div class="line">        tabs.add(&quot;美女&quot;);</div><div class="line">        tabs.add(&quot;生活&quot;);</div><div class="line">        tabs.add(&quot;娱乐&quot;);</div><div class="line">        tabs.add(&quot;搞笑&quot;);</div><div class="line">        tabs.add(&quot;宅男&quot;);</div><div class="line">        return tabs;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    /***</div><div class="line">     * 获取列表</div><div class="line">     * @param pn 页码</div><div class="line">     * @param type 类别名称</div><div class="line">     * @return</div><div class="line">     */</div><div class="line">    public Observable&lt;List&lt;Popular&gt;&gt; getPopular(int pn, String type) &#123;</div><div class="line">        return mHotApi.getPopular(pn, Constants.PAGE_SIZE, type)</div><div class="line">                .compose(SchedulersCompat.applyIoSchedulers())</div><div class="line">                .compose(RxResultHelper.handleResult())</div><div class="line">                .doOnNext(populars -&gt; &#123;</div><div class="line">                    if (pn == 1) &#123;</div><div class="line">                        ListPopular popular = new ListPopular(populars);</div><div class="line">                        cacheLoader.upNewData(type, popular);</div><div class="line">                    &#125;</div><div class="line">                &#125;);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    /***</div><div class="line">     * 获取缓存信息 默认只缓存第一页</div><div class="line">     * @param type 类别名称</div><div class="line">     * @param</div><div class="line">     * @return</div><div class="line">     */</div><div class="line">    public Observable&lt;List&lt;Popular&gt;&gt; getCachePopular(String type) &#123;</div><div class="line">        NetworkCache&lt;ListPopular&gt; networkCache = new NetworkCache&lt;ListPopular&gt;() &#123;</div><div class="line">            @Override</div><div class="line">            public Observable&lt;ListPopular&gt; get(String key, Class&lt;ListPopular&gt; cls) &#123;</div><div class="line">                return mHotApi.getPopular(1, Constants.PAGE_SIZE, type)</div><div class="line">                        .compose(SchedulersCompat.applyIoSchedulers())</div><div class="line">                        .compose(RxResultHelper.handleResult())</div><div class="line">                        .flatMap(populars -&gt; &#123;</div><div class="line">                            ListPopular popular = new ListPopular(populars);</div><div class="line">                            return Observable.just(popular);</div><div class="line">                        &#125;);</div><div class="line">            &#125;</div><div class="line">        &#125;;</div><div class="line"></div><div class="line">        return cacheLoader.asDataObservable(Constants.NEW_LIST + type, ListPopular.class, networkCache)</div><div class="line">                .map(listPopular -&gt; listPopular.data);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>记得在app的时候初始化</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">public class App extends Application &#123;</div><div class="line"></div><div class="line">    private static App appContext;</div><div class="line"></div><div class="line">    @Override</div><div class="line">    public void onCreate() &#123;</div><div class="line">        super.onCreate();</div><div class="line">        appContext = this;</div><div class="line">        DataManager.getInstance().initService();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public static App getAppContext() &#123;</div><div class="line">        return appContext;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>这样在p中的使用如下</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">Subscription subscription = DataManager.getInstance().getPopular(pn, type)</div><div class="line">                .subscribe(populars -&gt; &#123;</div><div class="line">                    mView.showContent();</div><div class="line">                    if (isRefresh()) &#123;</div><div class="line">                        if (populars.size() == 0) mView.showNotdata();</div><div class="line">                        mView.addRefreshData(populars);</div><div class="line">                    &#125; else &#123;</div><div class="line">                        mView.addLoadMoreData(populars);</div><div class="line">                    &#125;</div><div class="line">                &#125;, throwable -&gt; &#123;</div><div class="line">                    if (isRefresh())</div><div class="line">                    mView.showError(ErrorHanding.handleError(throwable));</div><div class="line">                    handleError(throwable);</div><div class="line">                &#125;);</div></pre></td></tr></table></figure>
-<h3 id="结束"><a href="#结束" class="headerlink" title="结束"></a>结束</h3><p>  通过这次的实践加深了我对mvp的认知，本人对rxjava认识不够深入，还在不断的学习中，要是有什么错误之处还望指正。</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1702,7 +1691,7 @@ if (mPresenter != null) mPresenter.detachView();
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-count">12</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -1768,7 +1757,7 @@ if (mPresenter != null) mPresenter.detachView();
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2017</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>
