@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="又开始学习kotlin了，Adapter的库在github也是一找一大堆，这次Dsl就用它来学习吧，DataBinding（支持多布局） 使用1234567891011121314151617181920212223242526272829303132333435363738val mAdapter = MagicAdapter.repositoryAdapter()          .addI">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kotlin学习之DslAdapter">
+<meta property="og:url" content="http://yoursite.com/2018/11/11/kotlin学习之DslAdapter/index.html">
+<meta property="og:site_name" content="GoGo&#39;s home">
+<meta property="og:description" content="又开始学习kotlin了，Adapter的库在github也是一找一大堆，这次Dsl就用它来学习吧，DataBinding（支持多布局） 使用1234567891011121314151617181920212223242526272829303132333435363738val mAdapter = MagicAdapter.repositoryAdapter()          .addI">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-11-11T05:23:06.627Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Kotlin学习之DslAdapter">
+<meta name="twitter:description" content="又开始学习kotlin了，Adapter的库在github也是一找一大堆，这次Dsl就用它来学习吧，DataBinding（支持多布局） 使用1234567891011121314151617181920212223242526272829303132333435363738val mAdapter = MagicAdapter.repositoryAdapter()          .addI">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/11/11/kotlin学习之DslAdapter/"/>
+
+
+
+
+
+  <title>Kotlin学习之DslAdapter | GoGo's home</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">GoGo's home</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/11/kotlin学习之DslAdapter/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="GoGo (吴克伟)">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GoGo's home">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Kotlin学习之DslAdapter</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-11T12:22:29+08:00">
+                2018-11-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>又开始学习kotlin了，Adapter的库在github也是一找一大堆，这次Dsl就用它来学习吧，DataBinding（支持多布局）</p>
+<h3 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div></pre></td><td class="code"><pre><div class="line">val mAdapter = MagicAdapter.repositoryAdapter()</div><div class="line">          .addItemDsl&lt;String&gt; &#123;</div><div class="line">              resId = R.layout.item_string</div><div class="line">              dataMatch = &#123; d, _ -&gt; d is String &#125;</div><div class="line">              itemId(BR.user) &#123; User(1234567, &quot;GoGo&quot;) &#125;</div><div class="line">              handler(BR.presenter, View.OnClickListener &#123;</div><div class="line">                  Toast.makeText(this@MainActivity, R.string.item_string, Toast.LENGTH_LONG).show()</div><div class="line">              &#125;)</div><div class="line">              areItems = &#123; o, n -&gt; o == n &#125;</div><div class="line">          &#125;</div><div class="line">          .addItemDsl&lt;User&gt; &#123;</div><div class="line">              resId = R.layout.item_user</div><div class="line">              dataMatch = &#123; d, _ -&gt; d is User &#125;</div><div class="line">              handler(BR.presenter, View.OnClickListener &#123;</div><div class="line">                  Toast.makeText(this@MainActivity, R.string.item_user, Toast.LENGTH_LONG).show()</div><div class="line">              &#125;)</div><div class="line">              areItems = &#123; o, n -&gt; o.id == n.id &#125;</div><div class="line">              areContents = &#123; o, n -&gt; o.id == n.id &amp;&amp; o.name == n.name&#125;</div><div class="line">          &#125;</div><div class="line">          .build()</div><div class="line"></div><div class="line">      binding.rv.run &#123;</div><div class="line">          adapter = mAdapter</div><div class="line">          layoutManager = LinearLayoutManager(this@MainActivity)</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      val data = ArrayList&lt;Any&gt;()</div><div class="line">      data.add(&quot;11111&quot;)</div><div class="line">      data.add(&quot;22222&quot;)</div><div class="line">      data.add(&quot;33333&quot;)</div><div class="line">      data.add(&quot;44444&quot;)</div><div class="line">      data.add(&quot;44444&quot;)</div><div class="line">      data.add(User(111, &quot;张三&quot;))</div><div class="line">      data.add(User(222, &quot;李四&quot;))</div><div class="line">      data.add(User(333, &quot;王五&quot;))</div><div class="line">      data.add(User(444, &quot;桃六&quot;))</div><div class="line"></div><div class="line">      mAdapter.submitList(data)</div></pre></td></tr></table></figure>
+<p>主要方法介绍addItemDsl()方法代表添加一个布局可以指定类型，传入一个MagicItem类，resId代码布局id，dataMatch是之在多布局的时候，当前item的数据和你加入的布局类型是否符合，因为是DataBinding版本，所以在布局上默认有个BR.item的,如下<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">&lt;data&gt;</div><div class="line"></div><div class="line">      &lt;variable</div><div class="line">              name=&quot;item&quot;</div><div class="line">              type=&quot;String&quot;/&gt;</div><div class="line"></div><div class="line">      &lt;variable name=&quot;user&quot; type=&quot;com.github.wkw.magicadapter.User&quot;/&gt;</div><div class="line"></div><div class="line">      &lt;variable</div><div class="line">              name=&quot;presenter&quot;</div><div class="line">              type=&quot;android.view.View.OnClickListener&quot;/&gt;</div><div class="line"></div><div class="line">  &lt;/data&gt;</div></pre></td></tr></table></figure></p>
+<p>itemId方法就是可以给布局加入其它类型的比如我加入了User类型，handler方法也是传人id和函数，因为有时候你会onClick，onLongClick自己可以加入。areItems和areContents代表的意思是加入了DiffUtil.Callback() 里面的两个areItemsTheSame和areContentsTheSame方法。</p>
+<h3 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h3><p>MagicAdapter里面</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">private var datas: MutableList&lt;Any&gt; = ArrayList()</div><div class="line"></div><div class="line">internal val items: MutableList&lt;MagicItem&lt;Any&gt;&gt; = builder.items</div><div class="line"></div><div class="line">private val positionToTypeMap = SparseIntArray()</div></pre></td></tr></table></figure>
+<p>item就是记录所以的布局总和，如何通过position来找到对应的布局核心代码就是如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">private fun positionToItemsIndex(position: Int): Int &#123;</div><div class="line">       if (items.isEmpty()) &#123;</div><div class="line">           throw RuntimeException(&quot;item must add&quot;)</div><div class="line">       &#125;</div><div class="line">       items.forEachIndexed &#123; index, magicItem -&gt;</div><div class="line">           if (magicItem.getItemViewType(datas[position], position)) &#123;</div><div class="line">               positionToTypeMap.put(position, index)</div><div class="line">               return index</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">       throw RuntimeException(&quot;can&apos;t find matched item&quot;)</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>onBindViewHolder默认</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line">override fun onBindViewHolder(holder: BindingViewHolder&lt;ViewDataBinding&gt;, postion: Int) &#123;</div><div class="line">       val data = datas[postion]</div><div class="line">       val magicItem = items[positionToTypeMap.get(postion)]</div><div class="line"></div><div class="line">       holder.binding.setVariable(BR.item, data)</div><div class="line"></div><div class="line">       val handlers = magicItem.handlers()</div><div class="line">       for ((id, handle) in handlers) &#123;</div><div class="line">           holder.binding.setVariable(id, handle)</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       val itemIds = magicItem.itemIds()</div><div class="line">       for ((idGet, setter) in itemIds) &#123;</div><div class="line">           val itemVariable = idGet(data)</div><div class="line">           holder.binding.setVariable(itemVariable, setter(data))</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       holder.binding.executePendingBindings()</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>其实代码量很少。</p>
+<h3 id="支持Dsl"><a href="#支持Dsl" class="headerlink" title="支持Dsl"></a>支持Dsl</h3><p>MagicDslItem类来支持</p>
+<h3 id="不足之处"><a href="#不足之处" class="headerlink" title="不足之处"></a>不足之处</h3><p>目前只支持databinding版本后期可以支持普通版本，<a href="https://github.com/zj-wukewei/KotlinDslMagicAdapter/" target="_blank" rel="external">DataBindingDslAdapter</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/10/27/在library中使用productFlavors/" rel="next" title="在library中使用productFlavors">
+                <i class="fa fa-chevron-left"></i> 在library中使用productFlavors
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.png"
+                alt="GoGo (吴克伟)" />
+            
+              <p class="site-author-name" itemprop="name">GoGo (吴克伟)</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">14</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/zj-wukewei" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="http://www.jianshu.com/u/80402b2535d3" target="_blank" title="简书">
+                    
+                      <i class="fa fa-fw fa-简书"></i>简书</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#使用"><span class="nav-number">1.</span> <span class="nav-text">使用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#原理"><span class="nav-number">2.</span> <span class="nav-text">原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#支持Dsl"><span class="nav-number">3.</span> <span class="nav-text">支持Dsl</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#不足之处"><span class="nav-number">4.</span> <span class="nav-text">不足之处</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">GoGo (吴克伟)</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

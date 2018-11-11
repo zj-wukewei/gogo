@@ -229,6 +229,138 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/11/kotlin学习之DslAdapter/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="GoGo (吴克伟)">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GoGo's home">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/11/11/kotlin学习之DslAdapter/" itemprop="url">Kotlin学习之DslAdapter</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-11T12:22:29+08:00">
+                2018-11-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>又开始学习kotlin了，Adapter的库在github也是一找一大堆，这次Dsl就用它来学习吧，DataBinding（支持多布局）</p>
+<h3 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div></pre></td><td class="code"><pre><div class="line">val mAdapter = MagicAdapter.repositoryAdapter()</div><div class="line">          .addItemDsl&lt;String&gt; &#123;</div><div class="line">              resId = R.layout.item_string</div><div class="line">              dataMatch = &#123; d, _ -&gt; d is String &#125;</div><div class="line">              itemId(BR.user) &#123; User(1234567, &quot;GoGo&quot;) &#125;</div><div class="line">              handler(BR.presenter, View.OnClickListener &#123;</div><div class="line">                  Toast.makeText(this@MainActivity, R.string.item_string, Toast.LENGTH_LONG).show()</div><div class="line">              &#125;)</div><div class="line">              areItems = &#123; o, n -&gt; o == n &#125;</div><div class="line">          &#125;</div><div class="line">          .addItemDsl&lt;User&gt; &#123;</div><div class="line">              resId = R.layout.item_user</div><div class="line">              dataMatch = &#123; d, _ -&gt; d is User &#125;</div><div class="line">              handler(BR.presenter, View.OnClickListener &#123;</div><div class="line">                  Toast.makeText(this@MainActivity, R.string.item_user, Toast.LENGTH_LONG).show()</div><div class="line">              &#125;)</div><div class="line">              areItems = &#123; o, n -&gt; o.id == n.id &#125;</div><div class="line">              areContents = &#123; o, n -&gt; o.id == n.id &amp;&amp; o.name == n.name&#125;</div><div class="line">          &#125;</div><div class="line">          .build()</div><div class="line"></div><div class="line">      binding.rv.run &#123;</div><div class="line">          adapter = mAdapter</div><div class="line">          layoutManager = LinearLayoutManager(this@MainActivity)</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      val data = ArrayList&lt;Any&gt;()</div><div class="line">      data.add(&quot;11111&quot;)</div><div class="line">      data.add(&quot;22222&quot;)</div><div class="line">      data.add(&quot;33333&quot;)</div><div class="line">      data.add(&quot;44444&quot;)</div><div class="line">      data.add(&quot;44444&quot;)</div><div class="line">      data.add(User(111, &quot;张三&quot;))</div><div class="line">      data.add(User(222, &quot;李四&quot;))</div><div class="line">      data.add(User(333, &quot;王五&quot;))</div><div class="line">      data.add(User(444, &quot;桃六&quot;))</div><div class="line"></div><div class="line">      mAdapter.submitList(data)</div></pre></td></tr></table></figure>
+<p>主要方法介绍addItemDsl()方法代表添加一个布局可以指定类型，传入一个MagicItem类，resId代码布局id，dataMatch是之在多布局的时候，当前item的数据和你加入的布局类型是否符合，因为是DataBinding版本，所以在布局上默认有个BR.item的,如下<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">&lt;data&gt;</div><div class="line"></div><div class="line">      &lt;variable</div><div class="line">              name=&quot;item&quot;</div><div class="line">              type=&quot;String&quot;/&gt;</div><div class="line"></div><div class="line">      &lt;variable name=&quot;user&quot; type=&quot;com.github.wkw.magicadapter.User&quot;/&gt;</div><div class="line"></div><div class="line">      &lt;variable</div><div class="line">              name=&quot;presenter&quot;</div><div class="line">              type=&quot;android.view.View.OnClickListener&quot;/&gt;</div><div class="line"></div><div class="line">  &lt;/data&gt;</div></pre></td></tr></table></figure></p>
+<p>itemId方法就是可以给布局加入其它类型的比如我加入了User类型，handler方法也是传人id和函数，因为有时候你会onClick，onLongClick自己可以加入。areItems和areContents代表的意思是加入了DiffUtil.Callback() 里面的两个areItemsTheSame和areContentsTheSame方法。</p>
+<h3 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h3><p>MagicAdapter里面</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">private var datas: MutableList&lt;Any&gt; = ArrayList()</div><div class="line"></div><div class="line">internal val items: MutableList&lt;MagicItem&lt;Any&gt;&gt; = builder.items</div><div class="line"></div><div class="line">private val positionToTypeMap = SparseIntArray()</div></pre></td></tr></table></figure>
+<p>item就是记录所以的布局总和，如何通过position来找到对应的布局核心代码就是如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">private fun positionToItemsIndex(position: Int): Int &#123;</div><div class="line">       if (items.isEmpty()) &#123;</div><div class="line">           throw RuntimeException(&quot;item must add&quot;)</div><div class="line">       &#125;</div><div class="line">       items.forEachIndexed &#123; index, magicItem -&gt;</div><div class="line">           if (magicItem.getItemViewType(datas[position], position)) &#123;</div><div class="line">               positionToTypeMap.put(position, index)</div><div class="line">               return index</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">       throw RuntimeException(&quot;can&apos;t find matched item&quot;)</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>onBindViewHolder默认</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line">override fun onBindViewHolder(holder: BindingViewHolder&lt;ViewDataBinding&gt;, postion: Int) &#123;</div><div class="line">       val data = datas[postion]</div><div class="line">       val magicItem = items[positionToTypeMap.get(postion)]</div><div class="line"></div><div class="line">       holder.binding.setVariable(BR.item, data)</div><div class="line"></div><div class="line">       val handlers = magicItem.handlers()</div><div class="line">       for ((id, handle) in handlers) &#123;</div><div class="line">           holder.binding.setVariable(id, handle)</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       val itemIds = magicItem.itemIds()</div><div class="line">       for ((idGet, setter) in itemIds) &#123;</div><div class="line">           val itemVariable = idGet(data)</div><div class="line">           holder.binding.setVariable(itemVariable, setter(data))</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       holder.binding.executePendingBindings()</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>其实代码量很少。</p>
+<h3 id="支持Dsl"><a href="#支持Dsl" class="headerlink" title="支持Dsl"></a>支持Dsl</h3><p>MagicDslItem类来支持</p>
+<h3 id="不足之处"><a href="#不足之处" class="headerlink" title="不足之处"></a>不足之处</h3><p>目前只支持databinding版本后期可以支持普通版本，<a href="https://github.com/zj-wukewei/KotlinDslMagicAdapter/" target="_blank" rel="external">DataBindingDslAdapter</a></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/10/27/在library中使用productFlavors/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1462,176 +1594,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/10/04/Hot项目进行部分修改（加入Dagger2）/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="GoGo (吴克伟)">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="GoGo's home">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/10/04/Hot项目进行部分修改（加入Dagger2）/" itemprop="url">Hot项目进行部分修改（加入Dagger2）</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-04T09:26:31+08:00">
-                2017-10-04
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>最近在看Dagger2，网上资料也很多，并且在自己私下的项目中Hot运用（一个关于微信热门头条的分享）。这里就不介绍dagger的一些使用方法啊，<a href="http://www.jianshu.com/p/01d3c014b0b1" target="_blank" rel="external">这里有个很好的介绍dagger介绍</a></p>
-<h3 id="DataManager管理"><a href="#DataManager管理" class="headerlink" title="DataManager管理"></a>DataManager管理</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Created by wukewei on 16/7/12.</div><div class="line"> * 这个类是管理app的数据来源无论从网络获取.内存.还是磁盘</div><div class="line"> */</div><div class="line">public class DataManager &#123;</div><div class="line"></div><div class="line">    private  HotApi mHotApi;</div><div class="line">    private  CacheLoader cacheLoader;</div><div class="line"></div><div class="line"></div><div class="line">    @Inject</div><div class="line">    public DataManager(HotApi hotApi, CacheLoader cacheLoader) &#123;</div><div class="line">        this.mHotApi = hotApi;</div><div class="line">        this.cacheLoader = cacheLoader;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    /***</div><div class="line">     * 获取分类的类型</div><div class="line">     * @param</div><div class="line">     * @param</div><div class="line">     * @return</div><div class="line">     */</div><div class="line">    public List&lt;String&gt; getTabs() &#123;</div><div class="line">        List&lt;String&gt; tabs = new ArrayList&lt;&gt;();</div><div class="line">        tabs.add(&quot;科技&quot;);</div><div class="line">        tabs.add(&quot;美女&quot;);</div><div class="line">        tabs.add(&quot;生活&quot;);</div><div class="line">        tabs.add(&quot;娱乐&quot;);</div><div class="line">        tabs.add(&quot;搞笑&quot;);</div><div class="line">        tabs.add(&quot;宅男&quot;);</div><div class="line">        return tabs;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    /***</div><div class="line">     * 获取列表</div><div class="line">     * @param pn 页码</div><div class="line">     * @param type 类别名称</div><div class="line">     * @return</div><div class="line">     */</div><div class="line">    public Observable&lt;List&lt;Popular&gt;&gt; getPopular(int pn, String type) &#123;</div><div class="line">        return mHotApi.getPopular(pn, Constants.PAGE_SIZE, type)</div><div class="line">                .compose(SchedulersCompat.applyIoSchedulers())</div><div class="line">                .compose(RxResultHelper.handleResult())</div><div class="line">                .doOnNext(populars -&gt; &#123;</div><div class="line">                    if (pn == 1) &#123;</div><div class="line">                        ListPopular popular = new ListPopular(populars);</div><div class="line">                        cacheLoader.upNewData(type, popular);</div><div class="line">                    &#125;</div><div class="line">                &#125;);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    /***</div><div class="line">     * 获取缓存信息 默认只缓存第一页</div><div class="line">     * @param type 类别名称</div><div class="line">     * @param</div><div class="line">     * @return</div><div class="line">     */</div><div class="line">    public Observable&lt;List&lt;Popular&gt;&gt; getCachePopular(String type) &#123;</div><div class="line">        NetworkCache&lt;ListPopular&gt; networkCache = new NetworkCache&lt;ListPopular&gt;() &#123;</div><div class="line">            @Override</div><div class="line">            public Observable&lt;ListPopular&gt; get(String key, Class&lt;ListPopular&gt; cls) &#123;</div><div class="line">                return mHotApi.getPopular(1, Constants.PAGE_SIZE, type)</div><div class="line">                        .compose(SchedulersCompat.applyIoSchedulers())</div><div class="line">                        .compose(RxResultHelper.handleResult())</div><div class="line">                        .flatMap(populars -&gt; &#123;</div><div class="line">                            ListPopular popular = new ListPopular(populars);</div><div class="line">                            return Observable.just(popular);</div><div class="line">                        &#125;);</div><div class="line">            &#125;</div><div class="line">        &#125;;</div><div class="line"></div><div class="line">        return cacheLoader.asDataObservable(Constants.NEW_LIST + type, ListPopular.class, networkCache)</div><div class="line">                .map(listPopular -&gt; listPopular.data);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="AppModule的构造的对象和提供的依赖"><a href="#AppModule的构造的对象和提供的依赖" class="headerlink" title="AppModule的构造的对象和提供的依赖"></a>AppModule的构造的对象和提供的依赖</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Created by wukewei on 16/7/19.</div><div class="line"> */</div><div class="line">@Module</div><div class="line">public class AppModule &#123;</div><div class="line"></div><div class="line">    private App application;</div><div class="line"></div><div class="line">    public AppModule(App application) &#123;</div><div class="line">        this.application = application;</div><div class="line">    &#125;</div><div class="line"></div><div class="line"></div><div class="line">    @Provides</div><div class="line">    @Singleton</div><div class="line">    @ContextLife(&quot;Application&quot;)</div><div class="line">    public App provideApp() &#123;</div><div class="line">        return application;</div><div class="line">    &#125;</div><div class="line"></div><div class="line"></div><div class="line">    @Provides</div><div class="line">    @Singleton</div><div class="line">    OkHttpClient provideOkHttpClient() &#123;</div><div class="line">        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();</div><div class="line">        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);</div><div class="line"></div><div class="line">        Interceptor apikey = chain -&gt; chain.proceed(chain.request().newBuilder()</div><div class="line">                .addHeader(&quot;apikey&quot;, Constants.Api_Key).build());</div><div class="line"></div><div class="line">        OkHttpClient okHttpClient = new OkHttpClient.Builder()</div><div class="line">                .readTimeout(Constants.HTTP_CONNECT_TIMEOUT, TimeUnit.MILLISECONDS)</div><div class="line">                .connectTimeout(Constants.HTTP_CONNECT_TIMEOUT, TimeUnit.MILLISECONDS)</div><div class="line">                .addInterceptor(apikey)</div><div class="line">                .addInterceptor(loggingInterceptor)</div><div class="line">                .build();</div><div class="line"></div><div class="line">        return okHttpClient;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Provides</div><div class="line">    @Singleton</div><div class="line">    HotApi provideHotApi(OkHttpClient okHttpClient) &#123;</div><div class="line">        Retrofit retrofit1 = new Retrofit.Builder()</div><div class="line">                .baseUrl(Constants.Base_Url)</div><div class="line">                .client(okHttpClient)</div><div class="line">                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())</div><div class="line">                .addConverterFactory(GsonConverterFactory.create())</div><div class="line">                .build();</div><div class="line">        HotApi hotApi = retrofit1.create(HotApi.class);</div><div class="line"></div><div class="line">        return hotApi;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Provides</div><div class="line">    @Singleton</div><div class="line">    CacheLoader provideCacheLoader() &#123;</div><div class="line">        return CacheLoader.getInstance(application);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Provides</div><div class="line">    @Singleton</div><div class="line">    DataManager provideDataManager(HotApi hotApi, CacheLoader cacheLoader) &#123;</div><div class="line">        return new DataManager(hotApi, cacheLoader);</div><div class="line">    &#125;</div><div class="line"></div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>接下来的Component的注入的代码</p>
-<h3 id="ActivityComponent的代码"><a href="#ActivityComponent的代码" class="headerlink" title="ActivityComponent的代码"></a>ActivityComponent的代码</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Created by wukewei on 16/7/19.</div><div class="line"> */</div><div class="line">@PerActivity</div><div class="line">@Component(dependencies = AppComponent.class, modules = ActivityModule.class)</div><div class="line">public interface ActivityComponent &#123;</div><div class="line"></div><div class="line">    DataManager getDataManager();</div><div class="line"></div><div class="line">    Activity getActivity();</div><div class="line"></div><div class="line">    void inject(MainActivity mainActivity);</div><div class="line">    void inject(WebActivity webActivity);</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>3.FragmentComponent的代码<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Created by wukewei on 16/7/19.</div><div class="line"> */</div><div class="line">@PerFragment</div><div class="line">@Component(dependencies = AppComponent.class, modules = FragmentModule.class)</div><div class="line">public interface FragmentComponent &#123;</div><div class="line"></div><div class="line">    DataManager getDataManager();</div><div class="line"></div><div class="line">    Activity getActivity();</div><div class="line"></div><div class="line">    void inject(ItemFragment itemFragment);</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>之前在View 和P的关联在通过在p构造方法中传入，现在是使用调用p的attachView（）方法。</p>
-<h3 id="现在BasePresenter设计"><a href="#现在BasePresenter设计" class="headerlink" title="现在BasePresenter设计"></a>现在BasePresenter设计</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Created by wukewei on 16/5/26.</div><div class="line"> */</div><div class="line">public abstract class BasePresenter&lt;T extends IView&gt; implements IPresenter&lt;T&gt; &#123;</div><div class="line"></div><div class="line">    protected Activity mActivity;</div><div class="line">    protected T mView;</div><div class="line">    protected CompositeSubscription mCompositeSubscription;</div><div class="line">    protected DataManager dataManager;</div><div class="line"></div><div class="line">    public BasePresenter(DataManager dataManager, Activity activity) &#123;</div><div class="line">        this.dataManager = dataManager;</div><div class="line">        this.mActivity = activity;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Override</div><div class="line">    public void attachView(T view) &#123;</div><div class="line">        this.mView = view;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    protected void handleError(Throwable throwable) &#123;</div><div class="line">        ToastUtil.showShort(mActivity, ErrorHanding.handleError(throwable));</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    protected void unSubscribe() &#123;</div><div class="line">        if (mCompositeSubscription != null) &#123;</div><div class="line">            mCompositeSubscription.unsubscribe();</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    protected void addSubscribe(Subscription subscription) &#123;</div><div class="line">        if (mCompositeSubscription == null) &#123;</div><div class="line">            mCompositeSubscription = new CompositeSubscription();</div><div class="line">        &#125;</div><div class="line">        mCompositeSubscription.add(subscription);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Override</div><div class="line">    public void detachView() &#123;</div><div class="line">        this.mView = null;</div><div class="line">        unSubscribe();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="BaseActivity中的p之前需要自己new出来，现在加入了dagger2，通过注入的方式"><a href="#BaseActivity中的p之前需要自己new出来，现在加入了dagger2，通过注入的方式" class="headerlink" title="BaseActivity中的p之前需要自己new出来，现在加入了dagger2，通过注入的方式"></a>BaseActivity中的p之前需要自己new出来，现在加入了dagger2，通过注入的方式</h3><p>/**</p>
-<ul>
-<li><p>Created by wukewei on 16/5/26.<br>*/<br>public abstract class BaseActivity<t extends="" ipresenter=""> extends AppCompatActivity implements IView {</t></p>
-<p> @Inject<br> protected T mPresenter;<br> protected Activity mContext;</p>
-<p> @Override<br> protected void onCreate(@Nullable Bundle savedInstanceState) {</p>
-<pre><code>super.onCreate(savedInstanceState);
-setContentView(getLayout());
-ButterKnife.bind(this);
-mContext = this;
-setupActivityComponent(App.getAppComponent(),new ActivityModule(this));
-mPresenter.attachView(this);
-initEventAndData();
-</code></pre><p> }</p>
-<p> protected void setCommonBackToolBack(Toolbar toolbar, String title) {</p>
-<pre><code>toolbar.setTitle(title);
-setSupportActionBar(toolbar);
-getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-getSupportActionBar().setDisplayShowHomeEnabled(true);
-toolbar.setNavigationOnClickListener(v -&gt; onBackPressed());
-</code></pre><p> }</p>
-<p> @Override<br> protected void onDestroy() {</p>
-<pre><code>super.onDestroy();
-ButterKnife.unbind(this);
-if (mPresenter != null) mPresenter.detachView();
-</code></pre><p> }</p>
-<p> /**</p>
-<ul>
-<li>依赖注入的入口</li>
-<li><p>@param appComponent appComponent<br>*/<br>protected abstract void setupActivityComponent(AppComponent appComponent, ActivityModule activityModule);</p>
-<p>protected abstract int getLayout();<br>protected abstract void initEventAndData();<br>}</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">多了setupActivityComponent（）方法这就是依赖注入的入口好比。</div></pre></td></tr></table></figure>
-</li>
-</ul>
-<p>@Override<br> protected void setupActivityComponent(AppComponent appComponent, ActivityModule activityModule) {</p>
-<pre><code>DaggerActivityComponent.builder()
-        .appComponent(appComponent)
-        .activityModule(activityModule)
-        .build()
-        .inject(this);
-</code></pre><p> }<br>````</p>
-</li>
-</ul>
-<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>这个项目是我私下自己在学习新的技术，并且运用在一起的项目，也是像对待产品一个对待这个app开发，后续会不断的学习和更新项目。本人也是个android小菜鸟，从最弱最弱的做起。</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1686,7 +1648,7 @@ if (mPresenter != null) mPresenter.detachView();
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-count">14</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
