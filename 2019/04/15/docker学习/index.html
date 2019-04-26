@@ -87,7 +87,7 @@
 <meta property="og:site_name" content="GoGo&#39;s home">
 <meta property="og:description" content="因为本人的电脑是mac的，以下操作均在mac系统下操作。 下载 地址，下载之后安装。 阿里云加速  在docker的Preferences的Daemon中的Registry mirros添加一个从阿里云获取的地址。 运行hello-world  在终端输入docker pull hello-world，这样就从docker仓库下载里镜像，docker run hello-world，创建容器。 安">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-04-15T12:50:28.279Z">
+<meta property="og:updated_time" content="2019-04-26T15:03:50.420Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="docker学习">
 <meta name="twitter:description" content="因为本人的电脑是mac的，以下操作均在mac系统下操作。 下载 地址，下载之后安装。 阿里云加速  在docker的Preferences的Daemon中的Registry mirros添加一个从阿里云获取的地址。 运行hello-world  在终端输入docker pull hello-world，这样就从docker仓库下载里镜像，docker run hello-world，创建容器。 安">
@@ -310,7 +310,7 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">docker run -p 6379:6379  </div><div class="line">-v ~/docker/redis/data:/data </div><div class="line">-v ~/docker/redis/redis.conf:/user/etc/redis/redis.conf </div><div class="line">-d redis redis-server /user/etc/redis/redis.conf </div><div class="line">--requirepass wukewei123456</div><div class="line">--appendonly yes</div></pre></td></tr></table></figure>
 <p>连接</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">docker exec -it 6d58450e9e06&#123;CONTAINER ID&#125; redis-cli -a wukewei123456&#123;密码&#125;</div></pre></td></tr></table></figure>
-<h3 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h3><p> docker run<br> docker start<br> docker stop<br> docker ps -a</p>
+<h3 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h3><p> docker run<br> docker start<br> docker stop<br> docker ps -a<br> exit</p>
 
       
     </div>
