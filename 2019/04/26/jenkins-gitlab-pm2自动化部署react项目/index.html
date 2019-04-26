@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="服务器   环境：centos、jenkins（汉化版）、gitlab、node、pm2都已经安装好里，这里也不再描述安装过程。   cnpm安装环境（npm网络不是很稳定，下载慢）：    123npm install -g cnpm --registry=https://registry.npm.taobao.org//然后建软链接，要不然输入cnpm -v会出错，未找到命令的错误sudo l">
+<meta property="og:type" content="article">
+<meta property="og:title" content="jenkins+gitlab+pm2自动化部署react项目">
+<meta property="og:url" content="http://yoursite.com/2019/04/26/jenkins-gitlab-pm2自动化部署react项目/index.html">
+<meta property="og:site_name" content="GoGo&#39;s home">
+<meta property="og:description" content="服务器   环境：centos、jenkins（汉化版）、gitlab、node、pm2都已经安装好里，这里也不再描述安装过程。   cnpm安装环境（npm网络不是很稳定，下载慢）：    123npm install -g cnpm --registry=https://registry.npm.taobao.org//然后建软链接，要不然输入cnpm -v会出错，未找到命令的错误sudo l">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/jenkins.jpg">
+<meta property="og:image" content="http://yoursite.com/images/task.jpg">
+<meta property="og:image" content="http://yoursite.com/images/general.jpg">
+<meta property="og:image" content="http://yoursite.com/images/code.jpg">
+<meta property="og:image" content="http://yoursite.com/images/add-gitlab-user.jpg">
+<meta property="og:image" content="http://yoursite.com/images/structure.jpg">
+<meta property="og:image" content="http://yoursite.com/images/structure-senior.jpg">
+<meta property="og:image" content="http://yoursite.com/images/environmental.jpg">
+<meta property="og:image" content="http://yoursite.com/images/structure-1.jpg">
+<meta property="og:image" content="http://yoursite.com/images/gitlab.jpg">
+<meta property="og:image" content="http://yoursite.com/images/gitlab-setting.jpg">
+<meta property="og:image" content="http://yoursite.com/images/webhook.jpg">
+<meta property="og:image" content="http://yoursite.com/images/text-web-source.jpg">
+<meta property="og:updated_time" content="2019-04-26T04:14:15.418Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="jenkins+gitlab+pm2自动化部署react项目">
+<meta name="twitter:description" content="服务器   环境：centos、jenkins（汉化版）、gitlab、node、pm2都已经安装好里，这里也不再描述安装过程。   cnpm安装环境（npm网络不是很稳定，下载慢）：    123npm install -g cnpm --registry=https://registry.npm.taobao.org//然后建软链接，要不然输入cnpm -v会出错，未找到命令的错误sudo l">
+<meta name="twitter:image" content="http://yoursite.com/images/jenkins.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/04/26/jenkins-gitlab-pm2自动化部署react项目/"/>
+
+
+
+
+
+  <title>jenkins+gitlab+pm2自动化部署react项目 | GoGo's home</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">GoGo's home</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/26/jenkins-gitlab-pm2自动化部署react项目/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="GoGo (吴克伟)">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GoGo's home">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">jenkins+gitlab+pm2自动化部署react项目</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-26T10:27:18+08:00">
+                2019-04-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="服务器"><a href="#服务器" class="headerlink" title="服务器"></a>服务器</h3><p>   环境：centos、jenkins（汉化版）、gitlab、node、pm2都已经安装好里，这里也不再描述安装过程。<br>   cnpm安装环境（npm网络不是很稳定，下载慢）：</p>
+   <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">npm install -g cnpm --registry=https://registry.npm.taobao.org</div><div class="line">//然后建软链接，要不然输入cnpm -v会出错，未找到命令的错误</div><div class="line">sudo ln -s /usr/node/node-v8.12.0-linux-x64/node-v8.12.0-linux-x64/bin/cnpm /usr/local/bin/cnpm</div></pre></td></tr></table></figure>
+<h3 id="jenkins设置（Gitlab-Plugin、NodeJs-Plugin安装）"><a href="#jenkins设置（Gitlab-Plugin、NodeJs-Plugin安装）" class="headerlink" title="jenkins设置（Gitlab Plugin、NodeJs Plugin安装）"></a>jenkins设置（Gitlab Plugin、NodeJs Plugin安装）</h3><p>  进入jenkins的页面<br>  <img src="/images/jenkins.jpg" alt=""><br>  点击左上角的新建任务，输入你的任务名字比如（text-web）,建议名字由项目名字-前端部署的端口号，记住名字后面会用到，选择构建一个自由风格的软件任务<br>  <img src="/images/task.jpg" alt=""><br>  会进入一个页面有General、源码管理、构建触发器、构建环境、构建、构建后操作的tab页面。<br>  1:先是General中描述，输入你想要对项目的描述。<br>   <img src="/images/general.jpg" alt=""><br>  2:源码管理，选择Git，在Repository URL输入，你要部署项目的gitlab的地址，我这里引用的方式是http不是ssh的，Credentials中选择就是你自己的gitlab的账号，还没有添加过的添加add<br>  <img src="/images/code.jpg" alt=""><br>  会出现下面页面UserName和Password添加你自己的gitlab账号，点击添加回到之前的页面在Credentials中就可以选择你添加的账号。<br>  <img src="/images/add-gitlab-user.jpg" alt=""><br>  Branch Specifier (blank for ‘any’)输入dev，因为我只是设置dev的时候才去采用自动化构建。<br>  3:构建触发器<br>  选择Build when a change is pushed to GitLab. GitLab webhook ，出现下图，记住GitLab webhook Url地址：<br>  <img src="/images/structure.jpg" alt=""><br>  点击高级按钮出现下图，看到Secret token，点击Generate出现一串字符，记录下来。<br>  <img src="/images/structure-senior.jpg" alt=""><br>  4:构建环境<br>  选择Provide Node &amp; npm bin/ folder to PATH<br>   在NodeJS Installation选择NodeJs(之前安装过)<br>    <img src="/images/environmental.jpg" alt=""><br>  5:构建<br>  点击添加构建步骤，选择执行Shell输入（deploy.sh就是要执行的脚本文件名）<br>  <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">cnpm install</div><div class="line">cnpm run build</div><div class="line">sh deploy.sh</div></pre></td></tr></table></figure></p>
+<p>   <img src="/images/structure-1.jpg" alt=""><br>   记得保存，在jenkins设置中记录两个，第一构建触发器中的GitLab webhook Url地址和Secret token后续会用到。</p>
+<h3 id="gitlab（汉化）设置"><a href="#gitlab（汉化）设置" class="headerlink" title="gitlab（汉化）设置"></a>gitlab（汉化）设置</h3><p>进入要部署的gitlab项目地址，点击设置中的导入所有仓库<br><img src="/images/gitlab.jpg" alt=""><br><img src="/images/gitlab-setting.jpg" alt="">,<br>在链接(URL)填入上面记录的GitLab webhook Url地址（就是jenkins你的任务地址，记得修改jenkins部署的是8000端口，要是之前直接复制的地址是8080的，一定记得改成8000端口的，一定记得改成8000端口的，一定记得改成8000端口的，重要的事情说三遍，我之前也是入坑了），在安全令牌输入Secret token后面复制的一串字符，在推送事件时间下输入dev，因为只想在dev推送的时候触发自动构建和jenkins中设置的dev相对应，点击添加Web钩子, 记得端口对应jenkins的端口。<br><img src="/images/webhook.jpg" alt=""></p>
+<h3 id="react项目"><a href="#react项目" class="headerlink" title="react项目"></a>react项目</h3><p>最主要的是已经四个文件部署要用到的，config.prod.js（定义了端口和代理ip地址）、deploy.sh（运行的脚本）、pm2.json、server.js<br><img src="/images/text-web-source.jpg" alt=""></p>
+<p>deploy.sh文件，要修改两个地址project_home/最后面的text-web-4005修改为你的项目-端口号，project_name就是jenkins的任务名字。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">echo &apos;---------------------------------- 部署Begin ----------------------------------&apos;</div><div class="line">#定义基础路径及目录</div><div class="line">#项目部署的地址/usr/server固定，后面由项目名字加上config.prod中的端口号，根据项目</div><div class="line">project_home=/usr/server/text-web-4005</div><div class="line">#jenkins服务器路径</div><div class="line">jenkins_home=/root/.jenkins/workspace</div><div class="line">#jenkins的任务名字</div><div class="line">project_name=text-web</div><div class="line">#server.js运行的依赖</div><div class="line">mode_modules=/usr/server/node_modules/node_modules.tar.gz</div><div class="line">tar -czf dist.tar.gz dist</div><div class="line">rm -rf dist</div><div class="line">if [ -d &quot;$project_home/&quot; ]; then</div><div class="line">  &#123;</div><div class="line">    echo &apos;----------------------------------文件存在----------------------------------&apos;</div><div class="line">    rm -rf $project_home</div><div class="line">  &#125;</div><div class="line">fi</div><div class="line">#建立新文件夹</div><div class="line">mkdir $project_home</div><div class="line">echo &apos;---------------------------------- 文件拷贝Begin ----------------------------------&apos;</div><div class="line">cp $jenkins_home/$project_name/dist.tar.gz $project_home</div><div class="line">cp $jenkins_home/$project_name/config.prod.js $project_home</div><div class="line">cp $jenkins_home/$project_name/server.js $project_home</div><div class="line">cp $jenkins_home/$project_name/pm2.json $project_home</div><div class="line">cp $mode_modules $project_home </div><div class="line">echo &apos;---------------------------------- 文件拷贝End ----------------------------------&apos;</div><div class="line">echo &apos;---------------------------------- 解压Begin ----------------------------------&apos;</div><div class="line">cd $project_home</div><div class="line">tar -xzvf dist.tar.gz</div><div class="line">tar -xzvf node_modules.tar.gz</div><div class="line">mkdir log</div><div class="line">rm -rf $project_home/dist.tar.gz</div><div class="line">rm -rf $project_home/node_modules.tar.gz</div><div class="line">echo &apos;---------------------------------- 解压End ----------------------------------&apos;</div><div class="line">echo &apos;---------------------------------- Pm2Begin ----------------------------------&apos;</div><div class="line">#到/usr文件夹目的是因为确保pm2第一次在安全的目录运行</div><div class="line">cd /usr</div><div class="line">pm2 list</div><div class="line">cd $project_home</div><div class="line">pm2 startOrRestart pm2.json</div><div class="line">echo &apos;---------------------------------- Pm2End ----------------------------------&apos;</div><div class="line">echo &apos;---------------------------------- 部署End ----------------------------------&apos;</div></pre></td></tr></table></figure>
+<h3 id="pm2遇到的坑"><a href="#pm2遇到的坑" class="headerlink" title="pm2遇到的坑"></a>pm2遇到的坑</h3><p> 当我在给一个项目配置的时候pm2出现了以下错误</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">PM2        |</div><div class="line">PM2        | Error: ENOENT: no such file or directory, uv_cwd</div><div class="line">PM2        |     at Object.resolve (path.js:1167:25)</div><div class="line">PM2        |     at Function.Module._resolveLookupPaths (module.js:424:17)</div><div class="line">PM2        |     at Function.Module._resolveFilename (module.js:542:20)</div><div class="line">PM2        |     at Function.Module._load (module.js:475:25)</div><div class="line">PM2        |     at Module.require (module.js:597:17)</div><div class="line">PM2        |     at require (internal/module.js:11:18)</div><div class="line">PM2        |     at Object.&lt;anonymous&gt; (/usr/node/node-v8.12.0-linux-x64/node-v8.12.0-linux-x64/lib/node_modules/pm2/lib/ProcessContainer.js:13:15)</div><div class="line">PM2        |     at Module._compile (module.js:653:30)</div><div class="line">PM2        |     at Object.Module._extensions..js (module.js:664:10)</div><div class="line">PM2        |     at Module.load (module.js:566:32)</div><div class="line">PM2        | [2019-04-25T18:47:51.855Z] PM2 log: App name:arms-console id:0 disconnected</div><div class="line">PM2        | [2019-04-25T18:47:51.856Z] PM2 log: App [arms-console] with id [0] and pid [27634], exited with code [1] via signal [SIGINT]</div><div class="line">PM2        | [2019-04-25T18:47:51.857Z] PM2 log: Script /usr/server/arms-console-4004/server.js had too many unstable restarts (16). Stopped. &quot;errored&quot;</div></pre></td></tr></table></figure>
+<p> 其它项目都是行的就是这个项目不行，后来在网上查了一通，也有人遇到这个问题，大概的解释就是在你的命令行中第一次运行pm2的那个文件夹是不能被删除的一删除就会出现这个错误，然后我运行pm2 kill然后在一个安全的目录先运行pm2 -v，问题解决了。因为我的脚本是每次部署都会把之前的文件夹删除，然后建立文件夹把必要的文件复制进去，然后解压然后删除不必要的问题，刚刚有个项目的目录是第一次运行pm2的文件夹被自动化部署的时候删除，就出现这个错误所以我在脚本里防止出现这个错误，  cd /usr  pm2 list，会先前去安全目录运行pm2 list，然后进入项目目录，运行pm2命令。请大家也能注意一下，在pm kill之后要先到安全目录运行以下pm2命令。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/04/15/docker学习/" rel="next" title="docker学习">
+                <i class="fa fa-chevron-left"></i> docker学习
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.png"
+                alt="GoGo (吴克伟)" />
+            
+              <p class="site-author-name" itemprop="name">GoGo (吴克伟)</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">17</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">8</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/zj-wukewei" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="http://www.jianshu.com/u/80402b2535d3" target="_blank" title="简书">
+                    
+                      <i class="fa fa-fw fa-简书"></i>简书</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#服务器"><span class="nav-number">1.</span> <span class="nav-text">服务器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#jenkins设置（Gitlab-Plugin、NodeJs-Plugin安装）"><span class="nav-number">2.</span> <span class="nav-text">jenkins设置（Gitlab Plugin、NodeJs Plugin安装）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#gitlab（汉化）设置"><span class="nav-number">3.</span> <span class="nav-text">gitlab（汉化）设置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#react项目"><span class="nav-number">4.</span> <span class="nav-text">react项目</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#pm2遇到的坑"><span class="nav-number">5.</span> <span class="nav-text">pm2遇到的坑</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">GoGo (吴克伟)</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
