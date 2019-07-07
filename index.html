@@ -229,6 +229,134 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/07/07/使用Typescript-ESLint-Prettier来搭建React开发环境/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="GoGo (吴克伟)">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GoGo's home">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/07/07/使用Typescript-ESLint-Prettier来搭建React开发环境/" itemprop="url">使用Typescript, ESLint, Prettier来搭建React开发环境</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-07-07T23:14:18+08:00">
+                2019-07-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>  前端新手……………….,先安装create-react-app</p>
+<h3 id="使用Typescript安装"><a href="#使用Typescript安装" class="headerlink" title="使用Typescript安装"></a>使用Typescript安装</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">  yarn create react-app my-test-ts --typescript</div><div class="line">``` </div><div class="line">### 安装ESLint, Prettier</div></pre></td></tr></table></figure>
+<h1 id="安装-eslint"><a href="#安装-eslint" class="headerlink" title="安装 eslint"></a>安装 eslint</h1><p>yarn add eslint eslint-plugin-react @typescript-eslint/parser @typescript-eslint/eslint-plugin –dev</p>
+<h1 id="安装-prettier"><a href="#安装-prettier" class="headerlink" title="安装 prettier"></a>安装 prettier</h1><p>yarn add prettier eslint-plugin-prettier eslint-config-prettier –dev<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">创建 .eslintrc.js 文件,可以加入rules的规则,但是在加入之前一定要组内讨论一下。</div></pre></td></tr></table></figure></p>
+<p>module.exports = {<br>  // 指定 ESLint parser<br>  parser: ‘@typescript-eslint/parser’,<br>  extends: [<br>    // 使用 @eslint-plugin-react 中推荐的规则<br>    ‘plugin:react/recommended’,<br>    // 使用 @typescript-eslint/eslint-plugin 中推荐的规则<br>    ‘plugin:@typescript-eslint/recommended’,<br>    // 使用 eslint-config-prettier 来禁止 @typescript-eslint/eslint-plugin 中那些和 prettier 冲突的规则<br>    ‘prettier/@typescript-eslint’,<br>    // 使用 eslint-plugin-prettier 来将 prettier 错误作为 ESLint 错误显示<br>    // 确保下面这行配置是这个数组里的最后一行配置<br>    ‘plugin:prettier/recommended’,<br>  ],<br>  parserOptions: {<br>    ecmaVersion: 2018, // 允许解析现代 es 特性<br>    sourceType: ‘module’, // 允许使用 imports<br>    ecmaFeatures: {<br>      jsx: true, // 允许解析 jsx<br>    },<br>  },<br>  rules: {<br>    ‘react/display-name’: ‘off’,<br>    ‘react/prop-types’: ‘off’,<br>    ‘import/no-unresolved’: ‘off’,<br>    ‘react/jsx-filename-extension’: [1, { “extensions”: [“.ts”, “.tsx”] }],<br>    ‘no-undef’: ‘off’,<br>    // 类名与接口名必须为驼峰式<br>    ‘@typescript-eslint/class-name-casing’: ‘error’,<br>  },<br>  settings: {<br>    react: {<br>      // Tells eslint-plugin-react to automatically detect the version of React to use<br>      version: ‘detect’,<br>    },<br>  },<br>}<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">创建 .prettierrc.js 文件</div></pre></td></tr></table></figure></p>
+<p>module.exports = {<br>  semi: false,<br>  trailingComma: ‘all’,<br>  singleQuote: true,<br>  printWidth: 120,<br>  tabWidth: 2,<br>}<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">### 安装eslint-config-airbnb</div></pre></td></tr></table></figure></p>
+<p>npx install-peerdeps –dev eslint-config-airbnb<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">添加 &quot;extends&quot;: &quot;airbnb&quot; 到 .eslintrc</div><div class="line"></div><div class="line">###  VsCode配置</div><div class="line"></div><div class="line">setting.json配置</div></pre></td></tr></table></figure></p>
+<p>{<br>  “eslint.autoFixOnSave”: true,<br>  “eslint.validate”: [<br>    “javascript”,<br>    “javascriptreact”,<br>    { “language”: “typescript”, “autoFix”: true },<br>    { “language”: “typescriptreact”, “autoFix”: true }<br>  ],</p>
+<p>  “editor.formatOnSave”: true,<br>  “[javascript]”: {<br>    “editor.formatOnSave”: false<br>  },<br>  “[javascriptreact]”: {<br>    “editor.formatOnSave”: false<br>  },<br>  “[typescript]”: {<br>    “editor.formatOnSave”: false<br>  },<br>  “[typescriptreact]”: {<br>    “editor.formatOnSave”: false<br>  },<br>  “javascript.updateImportsOnFileMove.enabled”: “always”,<br>  “typescript.updateImportsOnFileMove.enabled”: “always”<br>}<br>```</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/26/jenkins-gitlab-pm2自动化部署react项目/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1401,157 +1529,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/10/04/Kotlin学习之hot-kotlin/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="GoGo (吴克伟)">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="GoGo's home">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/10/04/Kotlin学习之hot-kotlin/" itemprop="url">Kotlin学习之hot_kotlin</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-04T10:06:03+08:00">
-                2017-10-04
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>自从google IO大会之后，kotlin的热度一直在上升，<a href="http://kotlinlang.org/docs/reference/" target="_blank" rel="external">kotlin官方文档</a>，这里也有个中文的<a href="https://www.kotlincn.net/docs/reference/android-overview.html" target="_blank" rel="external">中文文档</a>，作为android开发也可以看<a href="https://antonioleiva.com/kotlin-android-developers/" target="_blank" rel="external">Kotlin for Android Developers </a>，接下来就说说在android方面的使用，记录一下自己的学习，大部分是通过Kotlin for Android Developers 学习到的。</p>
-<h3 id="Delegated-Properties的使用（委托属性"><a href="#Delegated-Properties的使用（委托属性" class="headerlink" title="Delegated Properties的使用（委托属性)"></a>Delegated Properties的使用（委托属性)</h3><p>（1）这里简单的说明一下：用var修饰的可变属性和由val修饰的只读属性。由val修饰的只读属性使用的委托需要实现ReadOnlyProperty，而var修饰的可变属性则需要实现ReadWriteProperty。在调用被委托的属性的getter和setter时，对应操作会被委托给getValue()以及setValue()。<br>因为我在项目中使用了dagger2所以在app上要初始化ApplicationComponent提供给其它的component作为依赖，</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div></pre></td><td class="code"><pre><div class="line">class HotApp : Application() &#123;</div><div class="line"></div><div class="line">    companion object &#123;</div><div class="line">        var graph: ApplicationComponent by DelegatesExt.notNullSingleValue()</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    override fun onCreate() &#123;</div><div class="line">        super.onCreate()</div><div class="line">        graph = DaggerApplicationComponent.builder()</div><div class="line">                .applicationModule(ApplicationModule(this))</div><div class="line">                .build()</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"></div><div class="line">object DelegatesExt &#123;</div><div class="line">    fun &lt;T&gt; notNullSingleValue() = NotNullSingleValueVar&lt;T&gt;()</div><div class="line">&#125;</div><div class="line"></div><div class="line">class NotNullSingleValueVar&lt;T&gt; &#123;</div><div class="line"></div><div class="line">    private var value: T? = null</div><div class="line"></div><div class="line">    operator fun getValue(thisRef: Any?, property: KProperty&lt;*&gt;): T &#123;</div><div class="line">        return value ?: throw IllegalStateException(&quot;$&#123;property.name&#125; not initialized&quot;)</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    operator fun setValue(thisRef: Any?, property: KProperty&lt;*&gt;, value: T) &#123;</div><div class="line">        this.value = if (this.value == null) value</div><div class="line">        else throw IllegalStateException(&quot;$&#123;property.name&#125; already initialized&quot;)</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>graph属性只会被初始化一次，当你还没有初始化就去使用和多次初始化会报IllegalStateException异常。其中最主要的是getValue和setValue方法。<br>thisRef —— 必须与 属性所有者 类型（对于扩展属性——指被扩展的类型）相同或者是它的超类型，<br>property —— 必须是类型 KProperty&lt;*&gt; 或其超类型，<br>这个函数必须返回与属性相同的类型（或其子类型），<br>new value —— 必须和属性同类型或者是它的超类型。</p>
-<p>（2）Lazy（延迟属性）</p>
-<p>大部分app都会使用到toolbar，这时候你可以使用个接口对其统一的处理</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">interface ToolbarManager &#123;</div><div class="line">    val toolbar: Toolbar</div><div class="line">    var toolbarTitle: String</div><div class="line">        get() = toolbar.title.toString()</div><div class="line">        set(value) &#123;</div><div class="line">            toolbar.title = value</div><div class="line">        &#125;</div><div class="line"></div><div class="line">    fun enableHomeAsUp(up: () -&gt; Unit) &#123;</div><div class="line">        toolbar.navigationIcon = createUpDrawable()</div><div class="line">        toolbar.setNavigationOnClickListener &#123; up() &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    private fun createUpDrawable() = DrawerArrowDrawable(toolbar.ctx).apply &#123; progress = 1f &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>使用的时候</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">class MainActivity : AppCompatActivity(), ToolbarManager &#123;</div><div class="line"></div><div class="line">    override val toolbar by lazy &#123;</div><div class="line">        tool_bar</div><div class="line">    &#125;</div><div class="line">...省略代码...</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>因为当你不使用lazy关键字的时候，因为view都还没有创建所以一定找不到的。</p>
-<p>（3）Observable（可观察属性）<br><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.properties/-delegates/observable.html" target="_blank" rel="external">Delegates.observable()
-</a></p>
-<p>接受两个参数：初始值和修改时处理程序（handler）， 每当我们给属性赋值时会调用该处理程序（在赋值<em>后</em>执行），它有三个参数：被赋值的属性、旧值和新值。在android使用就是adapter的使用</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">var populars: List&lt;PopularModel&gt; by Delegates.observable(emptyList()) &#123; _, _, _ -&gt; notifyDataSetChanged() &#125;</div></pre></td></tr></table></figure>
-<p>就是在adapter的populars属性变化的时候调用notifyDataSetChanged() 方法，后期为了为了学习DiffUtil加上了，把之前的代码去掉了，因为我的viewmodel是data类，会自动推断产生以下函数，equals()/hashCode() pair,toString()，componentN()，copy()这样就会方便使用。</p>
-<h3 id="Extensions（扩展函数）"><a href="#Extensions（扩展函数）" class="headerlink" title="Extensions（扩展函数）"></a>Extensions（扩展函数）</h3><p>用户经常会短时间多次点击按钮，所以我们可以对View进行扩展，</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">fun View.singleClick(l: (android.view.View?) -&gt; Unit) &#123;</div><div class="line">    setOnClickListener(SingleClickListener(</div><div class="line">    &#125;</div><div class="line"></div><div class="line">class SingleClickListener(val click: (v: View) -&gt; Unit) : View.OnClickListener &#123;</div><div class="line"></div><div class="line">    companion object &#123;</div><div class="line">        private val DOUBLE_CLICK_TIMEOUT = ViewConfiguration.getDoubleTapTimeout()</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    private var lastClick: Long = 0</div><div class="line"></div><div class="line">    override fun onClick(v: View) &#123;</div><div class="line">        if (getLastClickTimeout() &gt; DOUBLE_CLICK_TIMEOUT) &#123;</div><div class="line">            lastClick = System.currentTimeMillis()</div><div class="line">            click(v)</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    private fun getLastClickTimeout(): Long &#123;</div><div class="line">        return System.currentTimeMillis() - lastClick</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>这样View就有singleClick()函数了，其实你对代码进行Bytecode会发现</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">public final class ViewExtensionsKt &#123;</div><div class="line">   public static final void singleClick(@NotNull View $receiver, @NotNull Function1 l) &#123;</div><div class="line">      Intrinsics.checkParameterIsNotNull($receiver, &quot;$receiver&quot;);</div><div class="line">      Intrinsics.checkParameterIsNotNull(l, &quot;l&quot;);</div><div class="line">      $receiver.setOnClickListener((OnClickListener)(new SingleClickListener(l)));</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>这不就是java的静态方法，这样你就可以根据自己的项目要求去愉快的扩展了，Extensions are resolved statically，扩展函数是静态解析的。</p>
-<h3 id="inline-function（内联函数）"><a href="#inline-function（内联函数）" class="headerlink" title="inline function（内联函数）"></a>inline function（内联函数）</h3><p>以下代码来自anko，</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div></pre></td><td class="code"><pre><div class="line">inline fun &lt;reified T : Activity&gt; Context.startActivity(vararg params: Pair&lt;String, Any&gt;) &#123;</div><div class="line">    Internals.internalStartActivity(this, T::class.java, params)</div><div class="line">&#125;</div><div class="line">object Internals &#123;</div><div class="line">    @JvmStatic</div><div class="line">    fun internalStartActivity(</div><div class="line">            ctx: Context,</div><div class="line">            activity: Class&lt;out Activity&gt;,</div><div class="line">            params: Array&lt;out Pair&lt;String, Any&gt;&gt;</div><div class="line">    ) &#123;</div><div class="line">        ctx.startActivity(createIntent(ctx, activity, params))</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @JvmStatic</div><div class="line">    fun &lt;T&gt; createIntent(ctx: Context, clazz: Class&lt;out T&gt;, params: Array&lt;out Pair&lt;String, Any?&gt;&gt;): Intent &#123;</div><div class="line">        val intent = Intent(ctx, clazz)</div><div class="line">        if (params.isNotEmpty()) fillIntentArguments(intent, params)</div><div class="line">        return intent</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @JvmStatic</div><div class="line">    private fun fillIntentArguments(intent: Intent, params: Array&lt;out Pair&lt;String, Any?&gt;&gt;) &#123;</div><div class="line">        params.forEach &#123;</div><div class="line">            val value = it.second</div><div class="line">            when (value) &#123;</div><div class="line">                null -&gt; intent.putExtra(it.first, null as Serializable?)</div><div class="line">                is Int -&gt; intent.putExtra(it.first, value)</div><div class="line">                is Long -&gt; intent.putExtra(it.first, value)</div><div class="line">                is CharSequence -&gt; intent.putExtra(it.first, value)</div><div class="line">                is String -&gt; intent.putExtra(it.first, value)</div><div class="line">                is Float -&gt; intent.putExtra(it.first, value)</div><div class="line">                is Double -&gt; intent.putExtra(it.first, value)</div><div class="line">                is Char -&gt; intent.putExtra(it.first, value)</div><div class="line">                is Short -&gt; intent.putExtra(it.first, value)</div><div class="line">                is Boolean -&gt; intent.putExtra(it.first, value)</div><div class="line">                is Serializable -&gt; intent.putExtra(it.first, value)</div><div class="line">                is Bundle -&gt; intent.putExtra(it.first, value)</div><div class="line">                is Parcelable -&gt; intent.putExtra(it.first, value)</div><div class="line">                is Array&lt;*&gt; -&gt; when &#123;</div><div class="line">                    value.isArrayOf&lt;CharSequence&gt;() -&gt; intent.putExtra(it.first, value)</div><div class="line">                    value.isArrayOf&lt;String&gt;() -&gt; intent.putExtra(it.first, value)</div><div class="line">                    value.isArrayOf&lt;Parcelable&gt;() -&gt; intent.putExtra(it.first, value)</div><div class="line">                    else -&gt; throw RuntimeException(&quot;Intent extra $&#123;it.first&#125; has wrong type $&#123;value.javaClass.name&#125;&quot;)</div><div class="line">                &#125;</div><div class="line">                is IntArray -&gt; intent.putExtra(it.first, value)</div><div class="line">                is LongArray -&gt; intent.putExtra(it.first, value)</div><div class="line">                is FloatArray -&gt; intent.putExtra(it.first, value)</div><div class="line">                is DoubleArray -&gt; intent.putExtra(it.first, value)</div><div class="line">                is CharArray -&gt; intent.putExtra(it.first, value)</div><div class="line">                is ShortArray -&gt; intent.putExtra(it.first, value)</div><div class="line">                is BooleanArray -&gt; intent.putExtra(it.first, value)</div><div class="line">                else -&gt; throw RuntimeException(&quot;Intent extra $&#123;it.first&#125; has wrong type $&#123;value.javaClass.name&#125;&quot;)</div><div class="line">            &#125;</div><div class="line">            return@forEach</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>这段代码包含的知识点很多，这里说一下reified修饰符“具体化”， 几乎就像是一个普通的类一样，正常的操作符如 !is 和 as 现在都能用了，在调用的时候要是具体的类型而不能是范型。</p>
-<h3 id="项目介绍：hot项目之前使用java的时候写过链接，这里就不再过多的介绍了，kotlin-hot地址-项目采用第三方框架如下："><a href="#项目介绍：hot项目之前使用java的时候写过链接，这里就不再过多的介绍了，kotlin-hot地址-项目采用第三方框架如下：" class="headerlink" title="项目介绍：hot项目之前使用java的时候写过链接，这里就不再过多的介绍了，kotlin_hot地址,项目采用第三方框架如下："></a>项目介绍：hot项目之前使用java的时候写过<a href="http://www.jianshu.com/p/b1da0387f805" target="_blank" rel="external">链接</a>，这里就不再过多的介绍了，<a href="https://github.com/zj-wukewei/Hot_Kotlin" target="_blank" rel="external">kotlin_hot地址</a>,项目采用第三方框架如下：</h3><ul>
-<li>Rxjava</li>
-<li>MVP</li>
-<li>Dagger2</li>
-<li>Retrofit</li>
-<li>OkHttp3</li>
-<li>Glide</li>
-<li>Kotlin<br>通过此次的学习自己也加深了对kotlin的理解，虽然还处于小白阶段，希望能帮助到你，要是有写的不对的地方望指出，一起学习进步。</li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1606,7 +1583,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">17</span>
+                  <span class="site-state-item-count">18</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -1619,7 +1596,7 @@
               
               <div class="site-state-item site-state-tags">
                 
-                  <span class="site-state-item-count">8</span>
+                  <span class="site-state-item-count">9</span>
                   <span class="site-state-item-name">标签</span>
                 
               </div>
