@@ -229,6 +229,149 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/07/22/react-native的列表使用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="GoGo (吴克伟)">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GoGo's home">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/07/22/react-native的列表使用/" itemprop="url">react-native的列表使用</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-07-22T22:17:10+08:00">
+                2019-07-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>在官网中使用列表组件是FlatList，具体的api使用可以自行去官网查看，本人是从android端转来的，熟悉android开发的在列表加载初期（网络请求开发时候），会出现loading页面，当数据加载成功的时候，有数据的时候会显示数据，数据为空时候显示NotDataView页面，当Error时候会出现请求出差页面，列表的下拉刷新使用的时候官网自带的RefreshControl（也可以自行去写动画）。</p>
+<h3 id="基础组件设计"><a href="#基础组件设计" class="headerlink" title="基础组件设计"></a>基础组件设计</h3><p>ErrorView（数据加载出错），LoadingView（正在请求中），NotDataView（无数据），ListView（带有上述功能的组件），前三者可以根据自己项目的效果修改，在此我使用最简单的方式实现。</p>
+<h3 id="代码实现"><a href="#代码实现" class="headerlink" title="代码实现"></a>代码实现</h3><p>ErrorView（非常简单的显示加载出差和重试功能）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line">import React from &quot;react&quot;;</div><div class="line">import &#123; TouchableOpacity, Text, StyleSheet &#125; from &quot;react-native&quot;;</div><div class="line"></div><div class="line">interface ErrorViewProps &#123;</div><div class="line">  errorMsg?: string;</div><div class="line">  onPress: () =&gt; void;</div><div class="line">&#125;</div><div class="line"></div><div class="line">const ErrorView: React.SFC&lt;ErrorViewProps&gt; = (&#123; errorMsg &#125;) =&gt; (</div><div class="line">  &lt;TouchableOpacity style=&#123;styles.container&#125;&gt;</div><div class="line">    &lt;Text&gt;&#123;errorMsg&#125;&lt;/Text&gt;</div><div class="line">  &lt;/TouchableOpacity&gt;</div><div class="line">);</div><div class="line"></div><div class="line">ErrorView.defaultProps = &#123;</div><div class="line">  errorMsg: &quot;服务器出差,请稍后再试...&quot;</div><div class="line">&#125;;</div><div class="line"></div><div class="line">const styles = StyleSheet.create(&#123;</div><div class="line">  container: &#123;</div><div class="line">    flex: 1,</div><div class="line">    justifyContent: &quot;center&quot;,</div><div class="line">    alignItems: &quot;center&quot;</div><div class="line">  &#125;</div><div class="line">&#125;);</div><div class="line"></div><div class="line">export default ErrorView;</div></pre></td></tr></table></figure>
+<p>LoadingView（正在加载中）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div></pre></td><td class="code"><pre><div class="line">import React from &quot;react&quot;;</div><div class="line">import &#123; View, Text, StyleSheet, ActivityIndicator &#125; from &quot;react-native&quot;;</div><div class="line"></div><div class="line">interface LoadingViewProps &#123;</div><div class="line">  backgroundColor?: string;</div><div class="line">  indicatorColor?: string;</div><div class="line">&#125;</div><div class="line"></div><div class="line">const LoadingView: React.SFC&lt;LoadingViewProps&gt; = (&#123;</div><div class="line">  backgroundColor,</div><div class="line">  indicatorColor</div><div class="line">&#125;) =&gt; (</div><div class="line">  &lt;View style=&#123;[styles.loading, &#123; backgroundColor: backgroundColor &#125;]&#125;&gt;</div><div class="line">    &lt;ActivityIndicator size=&quot;large&quot; color=&#123;indicatorColor&#125; /&gt;</div><div class="line">    &lt;Text style=&#123;styles.loadingText&#125;&gt;数据加载中...&lt;/Text&gt;</div><div class="line">  &lt;/View&gt;</div><div class="line">);</div><div class="line"></div><div class="line">LoadingView.defaultProps = &#123;</div><div class="line">  backgroundColor: &quot;#ffffff&quot;,</div><div class="line">  indicatorColor: &quot;4C7FEF&quot;</div><div class="line">&#125;;</div><div class="line"></div><div class="line">const styles = StyleSheet.create(&#123;</div><div class="line">  loading: &#123;</div><div class="line">    flex: 1,</div><div class="line">    alignItems: &quot;center&quot;,</div><div class="line">    justifyContent: &quot;center&quot;</div><div class="line">  &#125;,</div><div class="line">  loadingText: &#123;</div><div class="line">    marginTop: 10,</div><div class="line">    textAlign: &quot;center&quot;</div><div class="line">  &#125;</div><div class="line">&#125;);</div><div class="line"></div><div class="line">export default LoadingView;</div></pre></td></tr></table></figure>
+<p>NotDataView（简单的不能再简单）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line">import React from &quot;react&quot;;</div><div class="line">import &#123; View, Text, StyleSheet &#125; from &quot;react-native&quot;;</div><div class="line"></div><div class="line">interface NotDataViewProps &#123;</div><div class="line">  msg: string;</div><div class="line">&#125;</div><div class="line"></div><div class="line">const NotDataView: React.SFC&lt;NotDataViewProps&gt; = (&#123; msg &#125;) =&gt; (</div><div class="line">  &lt;View style=&#123;styles.container&#125;&gt;</div><div class="line">    &lt;Text&gt;&#123;msg&#125;&lt;/Text&gt;</div><div class="line">  &lt;/View&gt;</div><div class="line">);</div><div class="line"></div><div class="line">NotDataView.defaultProps = &#123;</div><div class="line">  msg: &quot;暂无数据&quot;</div><div class="line">&#125;;</div><div class="line"></div><div class="line">const styles = StyleSheet.create(&#123;</div><div class="line">  container: &#123;</div><div class="line">    flex: 1,</div><div class="line">    justifyContent: &quot;center&quot;,</div><div class="line">    alignItems: &quot;center&quot;</div><div class="line">  &#125;</div><div class="line">&#125;);</div><div class="line"></div><div class="line">export default NotDataView;</div></pre></td></tr></table></figure>
+<h3 id="重头戏（ListView）"><a href="#重头戏（ListView）" class="headerlink" title="重头戏（ListView）"></a>重头戏（ListView）</h3><p>先上代码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div><div class="line">125</div><div class="line">126</div><div class="line">127</div><div class="line">128</div><div class="line">129</div><div class="line">130</div><div class="line">131</div><div class="line">132</div><div class="line">133</div><div class="line">134</div><div class="line">135</div><div class="line">136</div><div class="line">137</div><div class="line">138</div><div class="line">139</div><div class="line">140</div><div class="line">141</div><div class="line">142</div><div class="line">143</div><div class="line">144</div><div class="line">145</div><div class="line">146</div><div class="line">147</div><div class="line">148</div><div class="line">149</div><div class="line">150</div><div class="line">151</div></pre></td><td class="code"><pre><div class="line">interface ListViewProps &#123;</div><div class="line">  dataSource: ReadonlyArray&lt;any&gt;;</div><div class="line">  renderItem: ListRenderItem&lt;any&gt;;</div><div class="line">  onFetchList: (</div><div class="line">    loading: boolean,</div><div class="line">    isRefreshing: boolean,</div><div class="line">    loadMore: boolean,</div><div class="line">    pn: number</div><div class="line">  ) =&gt; void;</div><div class="line">  isRefreshing: boolean;</div><div class="line">  loading: boolean;</div><div class="line">  loadMore: boolean;</div><div class="line">  hasMore: boolean;</div><div class="line">  error: boolean;</div><div class="line">  refreshColor?: string;</div><div class="line">  backgroundColor?: string;</div><div class="line">  defaultPage?: number;</div><div class="line">&#125;</div><div class="line"></div><div class="line">const DefaultPage = 0;</div><div class="line"></div><div class="line">class ListView extends React.PureComponent&lt;ListViewProps&gt; &#123;</div><div class="line">  static defaultProps = &#123;</div><div class="line">    refreshColor: &quot;#4C7FEF&quot;,</div><div class="line">    backgroundColor: &quot;#ffffff&quot;,</div><div class="line">    defaultPage: DefaultPage</div><div class="line">  &#125;;</div><div class="line">  page: number;</div><div class="line"></div><div class="line">  constructor(props: ListViewProps) &#123;</div><div class="line">    super(props);</div><div class="line">    const &#123; defaultPage &#125; = props;</div><div class="line">    this.page = defaultPage || DefaultPage;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  componentDidMount() &#123;</div><div class="line">    const &#123; onFetchList &#125; = this.props;</div><div class="line">    onFetchList(true, false, false, this.page);</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  onEndReached = () =&gt; &#123;</div><div class="line">    const &#123; onFetchList, loadMore, hasMore, error &#125; = this.props;</div><div class="line">    if (loadMore || !hasMore || error) &#123;</div><div class="line">      return;</div><div class="line">    &#125;</div><div class="line">    this.page = this.page + 1;</div><div class="line">    onFetchList(false, false, true, this.page);</div><div class="line">  &#125;;</div><div class="line"></div><div class="line">  renderFooter = () =&gt; &#123;</div><div class="line">    const &#123; loadMore, error &#125; = this.props;</div><div class="line">    if (loadMore) &#123;</div><div class="line">      return (</div><div class="line">        &lt;View style=&#123;styles.footer&#125;&gt;</div><div class="line">          &lt;ActivityIndicator /&gt;</div><div class="line">          &lt;Text style=&#123;&#123; marginLeft: 5 &#125;&#125;&gt;加载中...&lt;/Text&gt;</div><div class="line">        &lt;/View&gt;</div><div class="line">      );</div><div class="line">    &#125;</div><div class="line">    if (error) &#123;</div><div class="line">      return (</div><div class="line">        &lt;TouchableOpacity</div><div class="line">          style=&#123;styles.errorFooter&#125;</div><div class="line">          onPress=&#123;() =&gt; &#123;</div><div class="line">            const &#123; onFetchList &#125; = this.props;</div><div class="line">            onFetchList(false, false, true, this.page);</div><div class="line">          &#125;&#125;</div><div class="line">        &gt;</div><div class="line">          &lt;Text&gt;加载出错，点击重试&lt;/Text&gt;</div><div class="line">        &lt;/TouchableOpacity&gt;</div><div class="line">      );</div><div class="line">    &#125;</div><div class="line">    return &lt;View /&gt;;</div><div class="line">  &#125;;</div><div class="line"></div><div class="line">  handleRefresh = () =&gt; &#123;</div><div class="line">    const &#123; onFetchList, defaultPage &#125; = this.props;</div><div class="line">    this.page = defaultPage || DefaultPage;</div><div class="line">    onFetchList(false, true, false, this.page);</div><div class="line">  &#125;;</div><div class="line"></div><div class="line">  render() &#123;</div><div class="line">    const &#123;</div><div class="line">      dataSource,</div><div class="line">      renderItem,</div><div class="line">      isRefreshing,</div><div class="line">      loading,</div><div class="line">      error,</div><div class="line">      refreshColor,</div><div class="line">      backgroundColor,</div><div class="line">      defaultPage</div><div class="line">    &#125; = this.props;</div><div class="line">    const refreshColors: string[] = [refreshColor || &quot;#4C7FEF&quot;];</div><div class="line">    if (loading &amp;&amp; this.page === defaultPage) &#123;</div><div class="line">      return (</div><div class="line">        &lt;LoadingView</div><div class="line">          indicatorColor=&#123;refreshColor&#125;</div><div class="line">          backgroundColor=&#123;backgroundColor&#125;</div><div class="line">        /&gt;</div><div class="line">      );</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    if (error &amp;&amp; this.page === defaultPage) &#123;</div><div class="line">      return (</div><div class="line">        &lt;ErrorView</div><div class="line">          onPress=&#123;() =&gt; &#123;</div><div class="line">            const &#123; onFetchList &#125; = this.props;</div><div class="line">            onFetchList(true, false, false, this.page);</div><div class="line">          &#125;&#125;</div><div class="line">        /&gt;</div><div class="line">      );</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    return (</div><div class="line">      &lt;FlatList</div><div class="line">        data=&#123;dataSource&#125;</div><div class="line">        onEndReached=&#123;this.onEndReached&#125;</div><div class="line">        onEndReachedThreshold=&#123;0.2&#125;</div><div class="line">        ListEmptyComponent=&#123;NotDataView&#125;</div><div class="line">        keyExtractor=&#123;(item, index) =&gt; item.id || index.toString()&#125;</div><div class="line">        renderItem=&#123;renderItem&#125;</div><div class="line">        ListFooterComponent=&#123;this.renderFooter&#125;</div><div class="line">        refreshControl=&#123;</div><div class="line">          &lt;RefreshControl</div><div class="line">            refreshing=&#123;isRefreshing&#125;</div><div class="line">            onRefresh=&#123;this.handleRefresh&#125;</div><div class="line">            colors=&#123;refreshColors&#125;</div><div class="line">            progressBackgroundColor=&#123;backgroundColor&#125;</div><div class="line">          /&gt;</div><div class="line">        &#125;</div><div class="line">      /&gt;</div><div class="line">    );</div><div class="line">  &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">const styles = StyleSheet.create(&#123;</div><div class="line">  footer: &#123;</div><div class="line">    height: 40,</div><div class="line">    flexDirection: &quot;row&quot;,</div><div class="line">    justifyContent: &quot;center&quot;,</div><div class="line">    alignItems: &quot;center&quot;</div><div class="line">  &#125;,</div><div class="line">  errorFooter: &#123;</div><div class="line">    height: 40,</div><div class="line">    flexDirection: &quot;row&quot;,</div><div class="line">    justifyContent: &quot;center&quot;,</div><div class="line">    alignItems: &quot;center&quot;</div><div class="line">  &#125;</div><div class="line">&#125;);</div><div class="line"></div><div class="line">export default ListView;</div></pre></td></tr></table></figure>
+<p>从Props可以很明显的看出该组件的功能，dataSource(数据源)，renderItem（渲染的Item），onFetchList（请求数据），isRefreshing（是否正在下拉刷新），loading（是否显示正在加载），loadMore（是否显示footer正在加载），hasMore（是否还有数据），error（是否加载出错），refreshColor（下拉刷新的颜色），backgroundColor（背景颜色），defaultPage（默认开始页码）。</p>
+<h3 id="接口设计"><a href="#接口设计" class="headerlink" title="接口设计"></a>接口设计</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">export interface PageEntity&lt;TMODLE&gt; &#123;</div><div class="line">  //代表是否还有数据</div><div class="line">  hasMore: boolean;</div><div class="line">  list: TMODLE[];</div><div class="line">  totalCount: number;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="redux设计"><a href="#redux设计" class="headerlink" title="redux设计"></a>redux设计</h3><p>项目中使用的是redux，我们中间件采用的是redux-promise-middleware（简单的来说就是把Promise的三种状态采用拼接的type的形式）。一般来说一个接口有请求开始，成功，失败。</p>
+<p>handleReducer设计（对应Promise的三种状态）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div></pre></td><td class="code"><pre><div class="line">export interface BaseAction &#123;</div><div class="line">  type: string;</div><div class="line">&#125;</div><div class="line"></div><div class="line">export interface Action&lt;Payload&gt; extends BaseAction &#123;</div><div class="line">  payload: Payload;</div><div class="line">&#125;</div><div class="line"></div><div class="line">export interface ActionMeta&lt;Payload, Meta&gt; extends Action&lt;Payload&gt; &#123;</div><div class="line">  meta: Meta;</div><div class="line">&#125;</div><div class="line"></div><div class="line">export interface Reducer&lt;State, Payload, Meta&gt; &#123;</div><div class="line">  pending: (state: State, action: ActionMeta&lt;Payload, Meta&gt;) =&gt; State;</div><div class="line">  fulfilled: (state: State, action: ActionMeta&lt;Payload, Meta&gt;) =&gt; State;</div><div class="line">  rejected: (state: State, action: ActionMeta&lt;Payload, Meta&gt;) =&gt; State;</div><div class="line">&#125;</div><div class="line"></div><div class="line">export default function handleReducer&lt;State, Payload, Meta = any&gt;(</div><div class="line">  typeName: string,</div><div class="line">  initialState: State,</div><div class="line">  reducer: Reducer&lt;State, Payload, Meta&gt;</div><div class="line">) &#123;</div><div class="line">  return function(state = initialState, action: ActionMeta&lt;Payload, Meta&gt;) &#123;</div><div class="line">    const type = action.type;</div><div class="line">    const &#123; pending, fulfilled, rejected &#125; = reducer;</div><div class="line">    if (pending &amp;&amp; typeName + &quot;_PENDING&quot; === type) &#123;</div><div class="line">      return pending(state, action);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    if (fulfilled &amp;&amp; typeName + &quot;_FULFILLED&quot; === type) &#123;</div><div class="line">      return fulfilled(state, action);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    if (rejected &amp;&amp; typeName + &quot;_REJECTED&quot; === type) &#123;</div><div class="line">      return rejected(state, action);</div><div class="line">    &#125;</div><div class="line">    return state;</div><div class="line">  &#125;;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>pageReducer的设计(基本看代码都能看出来和ListView相对应)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div></pre></td><td class="code"><pre><div class="line">import handleReducer from &quot;./handleReducer&quot;;</div><div class="line"></div><div class="line">export interface PageState&lt;TMODLE&gt; &#123;</div><div class="line">  dataSource: TMODLE[];</div><div class="line">  isRefreshing: boolean;</div><div class="line">  loading: boolean;</div><div class="line">  loadMore: boolean;</div><div class="line">  hasMore: boolean;</div><div class="line">  error: boolean;</div><div class="line">&#125;</div><div class="line"></div><div class="line">export interface PageMeta &#123;</div><div class="line">  loading: boolean;</div><div class="line">  isRefreshing: boolean;</div><div class="line">  loadMore: boolean;</div><div class="line">&#125;</div><div class="line"></div><div class="line">export interface PageEntity&lt;TMODLE&gt; &#123;</div><div class="line">  hasMore: boolean;</div><div class="line">  list: TMODLE[];</div><div class="line">  totalCount: number;</div><div class="line">&#125;</div><div class="line"></div><div class="line">export function pageAction&lt;TMODLE, PARAMS&gt;(</div><div class="line">  typeName: string,</div><div class="line">  api: (param: PARAMS) =&gt; Promise&lt;PageEntity&lt;TMODLE&gt;&gt;,</div><div class="line">  paramCallback?: (param: PARAMS) =&gt; PARAMS</div><div class="line">) &#123;</div><div class="line">  return (</div><div class="line">    loading: boolean,</div><div class="line">    isRefreshing: boolean,</div><div class="line">    loadMore: boolean,</div><div class="line">    param: PARAMS</div><div class="line">  ) =&gt; (&#123;</div><div class="line">    type: typeName,</div><div class="line">    payload: paramCallback ? api(paramCallback(param)) : api(param),</div><div class="line">    meta: &#123;</div><div class="line">      loading,</div><div class="line">      isRefreshing,</div><div class="line">      loadMore</div><div class="line">    &#125;</div><div class="line">  &#125;);</div><div class="line">&#125;</div><div class="line"></div><div class="line">const initialState: PageState&lt;any&gt; = &#123;</div><div class="line">  dataSource: [],</div><div class="line">  isRefreshing: false,</div><div class="line">  loading: false,</div><div class="line">  loadMore: false,</div><div class="line">  hasMore: false,</div><div class="line">  error: false</div><div class="line">&#125;;</div><div class="line"></div><div class="line">export function pageReducer&lt;TMODEL&gt;(typeName: string) &#123;</div><div class="line">  return handleReducer&lt;PageState&lt;TMODEL&gt;, PageEntity&lt;TMODEL&gt;, PageMeta&gt;(</div><div class="line">    typeName,</div><div class="line">    initialState,</div><div class="line">    &#123;</div><div class="line">      pending: (state, &#123; meta &#125;) =&gt; (&#123;</div><div class="line">        ...state,</div><div class="line">        ...meta</div><div class="line">      &#125;),</div><div class="line">      fulfilled: (state, &#123; payload &#125;) =&gt; (&#123;</div><div class="line">        ...state,</div><div class="line">        isRefreshing: false,</div><div class="line">        loading: false,</div><div class="line">        loadMore: false,</div><div class="line">        error: false,</div><div class="line">        hasMore: payload.hasMore,</div><div class="line">        dataSource: state.loadMore</div><div class="line">          ? state.dataSource.concat(payload.list)</div><div class="line">          : payload.list</div><div class="line">      &#125;),</div><div class="line">      rejected: state =&gt; (&#123;</div><div class="line">        ...state,</div><div class="line">        isRefreshing: false,</div><div class="line">        loading: false,</div><div class="line">        loadMore: false,</div><div class="line">        hasMore: false,</div><div class="line">        error: true</div><div class="line">      &#125;)</div><div class="line">    &#125;</div><div class="line">  );</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h3><p>好比有个UserList页面</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div></pre></td><td class="code"><pre><div class="line">interface UserListProps &#123;</div><div class="line">  fetchUserList: (</div><div class="line">    loading: boolean,</div><div class="line">    isRefreshing: boolean,</div><div class="line">    loadMore: boolean,</div><div class="line">    param: CommomListParams</div><div class="line">  ) =&gt; void;</div><div class="line">  userList: PageState&lt;UserData&gt;;</div><div class="line">&#125;</div><div class="line"></div><div class="line">class UserList extends React.Component&lt;UserListProps&gt; &#123;</div><div class="line">  onFetchList = (</div><div class="line">    loading: boolean,</div><div class="line">    isRefreshing: boolean,</div><div class="line">    loadMore: boolean,</div><div class="line">    page: number</div><div class="line">  ) =&gt; &#123;</div><div class="line">    const &#123; fetchUserList &#125; = this.props;</div><div class="line">    fetchUserList(loading, isRefreshing, loadMore, &#123; start: page &#125;);</div><div class="line">  &#125;;</div><div class="line"></div><div class="line">  renderUserItem = (&#123; item &#125;: ListRenderItemInfo&lt;UserData&gt;) =&gt; (</div><div class="line">    &lt;View&gt;</div><div class="line">      &lt;Text&gt;&#123;item.id&#125;&lt;/Text&gt;</div><div class="line">      &lt;Text&gt;&#123;item.name&#125;&lt;/Text&gt;</div><div class="line">      &lt;Text&gt;&#123;item.age&#125;&lt;/Text&gt;</div><div class="line">      &lt;Text&gt;&#123;item.sex&#125;&lt;/Text&gt;</div><div class="line">    &lt;/View&gt;</div><div class="line">  );</div><div class="line"></div><div class="line">  render() &#123;</div><div class="line">    const &#123; userList &#125; = this.props;</div><div class="line">    return (</div><div class="line">      &lt;ListView</div><div class="line">        &#123;...userList&#125;</div><div class="line">        onFetchList=&#123;this.onFetchList&#125;</div><div class="line">        renderItem=&#123;this.renderUserItem&#125;</div><div class="line">      /&gt;</div><div class="line">    );</div><div class="line">  &#125;</div><div class="line">&#125;</div><div class="line">function mapStateToProps(state: ReducerType) &#123;</div><div class="line">  return &#123;</div><div class="line">    userList: state.userList</div><div class="line">  &#125;;</div><div class="line">&#125;</div><div class="line">export default connect(</div><div class="line">  mapStateToProps,</div><div class="line">  &#123;</div><div class="line">    fetchUserList: fetchUserListAction</div><div class="line">  &#125;</div><div class="line">)(UserList);</div></pre></td></tr></table></figure>
+<p>action很简单</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">export const fetchUserListAction = pageAction&lt;UserData, CommomListParams&gt;(</div><div class="line">  User.FETCH_USER_LSIT,</div><div class="line">  fetchUserList</div><div class="line">);</div></pre></td></tr></table></figure>
+<p>reducers也很简单，不需要写任何其它纯函数</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">const reducer = combineReducers(&#123;</div><div class="line">  userList: pageReducer&lt;UserData&gt;(User.FETCH_USER_LSIT)</div><div class="line">&#125;);</div><div class="line"></div><div class="line">export default reducer;</div><div class="line"></div><div class="line">export interface ReducerType &#123;</div><div class="line">  userList: PageState&lt;UserData&gt;;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>通过这次的封装使我对redux， Typescript有更加深入的了解。<a href="https://github.com/zj-wukewei/react_native_listview" target="_blank" rel="external">代码地址</a></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/07/07/使用Typescript-ESLint-Prettier来搭建React开发环境/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1382,154 +1525,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/10/04/android组件化学习/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="GoGo (吴克伟)">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="GoGo's home">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/10/04/android组件化学习/" itemprop="url">android组件化学习</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-04T10:11:25+08:00">
-                2017-10-04
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>网上关于组件化的文章有很多了，大部分都知道实现的思路，不过还是要自己去实践一下才会发现问题。文章的<a href="https://github.com/zj-wukewei/ModularizationExample" target="_blank" rel="external">项目地址</a>，项目用到CleanArchitecture框架，本文会介绍CleanArchitecture框架和dagger2在组件化的使用。</p>
-<h3 id="项目关系图"><a href="#项目关系图" class="headerlink" title="项目关系图"></a>项目关系图</h3><p><img src="http://upload-images.jianshu.io/upload_images/1353151-465fd79c815487c7.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="关系图.png"></p>
-<p>sdk:  一些公用库，各种辅助类，和第三方view<br>basic:  (依赖sdk) 网络访问初始化，本地缓存和第三方包等。<br>commonbusiness:  (依赖basic) 这里为什么我会多出这一层，因为有很多公共的业务，好比公司的app是强登录的，我会把登录模块写在这里，里面也包含了一些baseActivity和BaseApplication和各个组件的一些公共方法还有组件各种的服务接口的定义。<br>module_archives和module_knowledge： 就是两个组件，可以单独运行。</p>
-<h4 id="application和library切换"><a href="#application和library切换" class="headerlink" title="application和library切换"></a>application和library切换</h4><p>想必大家都知道了，定义一个isBuildModule=false，在组件的build.gradle中加入</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line">if (isBuildModule.toBoolean()) &#123;</div><div class="line">    apply plugin: &apos;com.android.application&apos;</div><div class="line">&#125; else &#123;</div><div class="line">    apply plugin: &apos;com.android.library&apos;</div><div class="line">    apply from: &apos;maven-release-kline-aar.gradle&apos;</div><div class="line">&#125;</div><div class="line"></div><div class="line"> sourceSets &#123;</div><div class="line">        main &#123;</div><div class="line">            if (isBuildModule.toBoolean()) &#123;</div><div class="line">                manifest.srcFile &apos;src/main/debug/AndroidManifest.xml&apos;</div><div class="line">            &#125; else &#123;</div><div class="line">                manifest.srcFile &apos;src/main/release/AndroidManifest.xml&apos;</div><div class="line">                java &#123;</div><div class="line">                    exclude &apos;**/debug/**&apos;</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
-<p>maven-release-kline-aar.gradle是一个打包aar的文件，在切换的时候也会使用不同的AndroidManifest.xml，因为在组件是debug的时候它是单独单独运行的，还有就是代码可以在建立一个debug包，可以在单独运行的时候做些初始化app的，打包的时候回剔除这部分代码。</p>
-<h4 id="library依赖和资源问题"><a href="#library依赖和资源问题" class="headerlink" title="library依赖和资源问题"></a>library依赖和资源问题</h4><p>我把所以的library都依赖在basic，每个组件都会依赖这个包，这样就不会存在library的版本问题，资源的问题就是</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">defaultConfig &#123;</div><div class="line"></div><div class="line">       if (isBuildModule.toBoolean()) &#123;</div><div class="line">           applicationId &quot;com.wkw.archives&quot;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       minSdkVersion rootProject.ext.minSdkVersion</div><div class="line">       targetSdkVersion rootProject.ext.targetSdkVersion</div><div class="line">       versionCode rootProject.ext.versionCode</div><div class="line">       versionName rootProject.ext.versionName</div><div class="line"></div><div class="line">       testInstrumentationRunner &quot;android.support.test.runner.AndroidJUnitRunner&quot;</div><div class="line"></div><div class="line">       resourcePrefix &quot;archives&quot;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
-<h4 id="组件之间的通信"><a href="#组件之间的通信" class="headerlink" title="组件之间的通信"></a>组件之间的通信</h4><p>你可以选择阿里的<a href="https://github.com/alibaba/ARouter" target="_blank" rel="external">ARouter</a>库，但是我的项目没有那么复杂，组件也就4个左右，所以没有使用阿里的库，我采用的是以下就是核心代码</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">Object result = null;</div><div class="line">Class&lt;?&gt; c = Class.forName(className);</div><div class="line">if (c != null) &#123;</div><div class="line">    result = c.newInstance();</div><div class="line">&#125;</div><div class="line">return result;</div></pre></td></tr></table></figure>
-<p>但是采用Class.forName会有个问题那就是在混淆的时候，className是指定的，所以要在类上加@Keep 。</p>
-<h4 id="CleanArchitecture框架和dagger在组件化的使用"><a href="#CleanArchitecture框架和dagger在组件化的使用" class="headerlink" title="CleanArchitecture框架和dagger在组件化的使用"></a>CleanArchitecture框架和dagger在组件化的使用</h4><p><a href="https://github.com/android10/Android-CleanArchitecture" target="_blank" rel="external">CleanArchitecture框架的github地址</a>，这里再介绍分享一篇文章<a href="http://www.jianshu.com/u/df40282480b4" target="_blank" rel="external">小鄧子</a>的<a href="http://www.jianshu.com/p/3edcf85539a6" target="_blank" rel="external">Easy Clean architecture on Android</a>,我把data和domain会写在各自的业务模块中，自己的模块只要定义自己的就可以了，有个ApplicationModule会定义一些每个模块都需要的</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div></pre></td><td class="code"><pre><div class="line">public class ApplicationModule &#123;</div><div class="line"></div><div class="line">    @Provides</div><div class="line">    @Singleton</div><div class="line">    Context provideContext(Application application) &#123;</div><div class="line">        return application;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Provides</div><div class="line">    @Singleton</div><div class="line">    UserSystem provideUserSystem() &#123;</div><div class="line">        return new UserSystem();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Provides</div><div class="line">    @Singleton</div><div class="line">    ThreadExecutor provideThreadExecutor(JobExecutor jobExecutor) &#123;</div><div class="line">        return jobExecutor;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Provides</div><div class="line">    @Singleton</div><div class="line">    PostExecutionThread providePostExecutionThread(UIThread uiThread) &#123;</div><div class="line">        return uiThread;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Provides</div><div class="line">    @Singleton</div><div class="line">    MrService provideMrService() &#123;</div><div class="line">        return new MrService();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Provides</div><div class="line">    @Singleton</div><div class="line">    UserCache provideUserCache(UserCacheImpl userCache) &#123;</div><div class="line">        return userCache;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>然后在module_archives模块中会有ArchivesDataRepositoryModule和ArchivesActivityModule<br>其中KnowledgeDataRepositoryModule用于提供如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">@Module</div><div class="line">public class ArchivesDataRepositoryModule &#123;</div><div class="line"></div><div class="line">    @Provides</div><div class="line">    @Singleton</div><div class="line">    ArchivesApi providesArchivesApi(MrService mrService) &#123;</div><div class="line">        return mrService.createApi(ArchivesApi.class);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Provides</div><div class="line">    @Singleton</div><div class="line">    ArchivesRepository prvidesArchivesRepository(ArchivesDataRepository archivesDataRepository) &#123;</div><div class="line">        return archivesDataRepository;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>ArchivesActivityModule的代码如下：</p>
- <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">@Module</div><div class="line">public abstract class ArchivesActivityModule &#123;</div><div class="line">    @PerActivity</div><div class="line">    @ContributesAndroidInjector()</div><div class="line">    abstract ArchivesActivity contributeArchivesActivity();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>这样在主app的AppComponent类中加入：</p>
- <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">@Singleton</div><div class="line">@Component(modules = &#123;</div><div class="line">        AndroidInjectionModule.class, ApplicationModule.class,</div><div class="line">        ArchivesDataRepositoryModule.class, ArchivesActivityModule.class,</div><div class="line">        KnowledgeDataRepositoryModule.class, KnowledgeActivityModule.class</div><div class="line">&#125;)</div><div class="line">public interface AppComponent &#123;</div><div class="line">    @Component.Builder</div><div class="line">    interface Builder &#123;</div><div class="line">        @BindsInstance</div><div class="line">        Builder application(Application application);</div><div class="line">        AppComponent build();</div><div class="line">    &#125;</div><div class="line">    void inject(MrApplication mrApplication);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>在module_archives为debug模式下也会有个AppComponent</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">@Singleton</div><div class="line">@Component(modules = &#123;</div><div class="line">        AndroidInjectionModule.class, ApplicationModule.class,</div><div class="line">        ArchivesDataRepositoryModule.class, ArchivesActivityModule.class</div><div class="line">&#125;)</div><div class="line">public interface AppComponent &#123;</div><div class="line">    @Component.Builder</div><div class="line">    interface Builder &#123;</div><div class="line">        @BindsInstance</div><div class="line">        Builder application(Application application);</div><div class="line">        AppComponent build();</div><div class="line">    &#125;</div><div class="line">    void inject(ArchivesApplication mrApplication);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>各种模块初始化api和Repository，你要是嫌弃每个模块都要引入两个.class文件，你可以使用一个然后采用include的方式好比dagger中的AndroidSupportInjectionModule类方式</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">@Beta</div><div class="line">@Module(includes = AndroidInjectionModule.class)</div><div class="line">public abstract class AndroidSupportInjectionModule &#123;</div><div class="line">  @Multibinds</div><div class="line">  abstract Map&lt;Class&lt;? extends Fragment&gt;, AndroidInjector.Factory&lt;? extends Fragment&gt;&gt;</div><div class="line">      supportFragmentInjectorFactories();</div><div class="line"></div><div class="line">  private AndroidSupportInjectionModule() &#123;&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>这样就会很清楚的知道自己模块需要初始化什么和使用什么，也不用考虑其它模块的初始化的数据，之后只需要在主app加入就行，也是比较方便的。</p>
-<h4 id="打包"><a href="#打包" class="headerlink" title="打包"></a>打包</h4><p>各种模块当为library是要打包成aar的，maven-release-kline-aar.gradle文件代码如下:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line">apply plugin: &apos;maven&apos;</div><div class="line"></div><div class="line">ext &#123;// ext is a gradle closure allowing the declaration of global properties</div><div class="line">    PUBLISH_GROUP_ID = &apos;com.wkw&apos;</div><div class="line">    PUBLISH_ARTIFACT_ID = &apos;archives&apos;</div><div class="line">    PUBLISH_VERSION = rootProject.ext.versionName</div><div class="line">&#125;</div><div class="line"></div><div class="line">uploadArchives &#123;</div><div class="line">    repositories.mavenDeployer &#123;</div><div class="line">        //这里就是最后输出地址，在自己电脑上新建个文件夹，把文件夹路径粘贴在此</div><div class="line">        //注意”file://“ + 路径，有三个斜杠，别漏了</div><div class="line">        repository(url: &quot;file:///Users/wukewei/Documents/android/ModularizationExample/repo&quot;)</div><div class="line"></div><div class="line">        pom.project &#123;</div><div class="line">            groupId project.PUBLISH_GROUP_ID</div><div class="line">            artifactId project.PUBLISH_ARTIFACT_ID</div><div class="line">            version project.PUBLISH_VERSION</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">//以下代码会生成jar包源文件，如果是不开源码，请不要输入这段</div><div class="line">//aar包内包含注释</div><div class="line">task androidSourcesJar(type: Jar) &#123;</div><div class="line">    classifier = &apos;sources&apos;</div><div class="line">    from android.sourceSets.main.java.sourceFiles</div><div class="line">&#125;</div><div class="line"></div><div class="line">artifacts &#123;</div><div class="line">    archives androidSourcesJar</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>我只是打包到本地，你可以自己建立一个本地maven库。</p>
-<h4 id="如要改进的地方"><a href="#如要改进的地方" class="headerlink" title="如要改进的地方"></a>如要改进的地方</h4><p>1：每次建立一个模块还是要做很多初始化的工作<br>2：maven-release-kline-aar.gradle每个模块都会有，希望后期能改进。<br>3:  debug模式下各个模块登录之后跳转问题<br>4：等等。。。。。</p>
-<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a href="http://blog.zhaiyifan.cn/2016/10/20/android-new-project-from-0-p11/" target="_blank" rel="external">从零开始的Android新项目11 - 组件化实践（1）</a> -<br> 大帅</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1584,7 +1579,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">18</span>
+                  <span class="site-state-item-count">19</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -1597,7 +1592,7 @@
               
               <div class="site-state-item site-state-tags">
                 
-                  <span class="site-state-item-count">9</span>
+                  <span class="site-state-item-count">10</span>
                   <span class="site-state-item-name">标签</span>
                 
               </div>
