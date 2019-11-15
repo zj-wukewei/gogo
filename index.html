@@ -229,6 +229,167 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/16/发布React组件库到npm私服/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="GoGo (吴克伟)">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GoGo's home">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/11/16/发布React组件库到npm私服/" itemprop="url">发布React组件库到npm私服</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-11-16T00:09:07+08:00">
+                2019-11-16
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h3 id="使用-nexus-搭建-npm-私服"><a href="#使用-nexus-搭建-npm-私服" class="headerlink" title="使用 nexus 搭建 npm 私服"></a>使用 nexus 搭建 npm 私服</h3><p>这里怎么去搭建 nexus 就不介绍了，在 nexus 设置模块中。</p>
+<p>创建 Repositories<br><img src="/images/create-repositories.jpg" alt=""></p>
+<ul>
+<li>1: npm (proxy) 代理仓库</li>
+<li>2: npm (hosted) 是私有仓库</li>
+<li>3: npm (group) 是组合前面两个</li>
+</ul>
+<p>创建代理仓库<br><img src="/images/npm-proxy.jpg" alt=""></p>
+<p>创建 npm (hosted) 仓库<br><img src="/images/npm-private.jpg" alt=""></p>
+<p>创建 npm (group) 仓库<br><img src="/images/npm-group.jpg" alt=""></p>
+<h3 id="组件库采用的技术方案"><a href="#组件库采用的技术方案" class="headerlink" title="组件库采用的技术方案"></a>组件库采用的技术方案</h3><p><a href="https://github.com/umijs/father" target="_blank" rel="external">技术方案</a>，改技术能很好的开发组件打包，发布组件，编写文档。项目也采用 TypeScript 来开发，主要是因为这样让后期开发人员能很好的使用。(package.json 中 peerDependencies 是不会被打包进去的)，其它的配置信息可以去看 father 的文档。</p>
+<h3 id="开发流程"><a href="#开发流程" class="headerlink" title="开发流程"></a>开发流程</h3><ul>
+<li><p>3.1 开发组件<br>在 src 的目录下面新建要开发的组件，文件名字采用的是驼峰的方式（首字母小写）。可参考写过的组件，接下来就是你自己自由的发挥了。</p>
+</li>
+<li><p>3.2 组件说明<br>就是你要写怎么使用这个组件，让组内的人员知道怎么使用。在文件夹下面新建 index.mdx（文件后缀名不要写错了）。这里简单的说明一下</p>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div></pre></td><td class="code"><pre><div class="line">---</div><div class="line">name: TableHeader (组件名字)</div><div class="line">route: /TableHeader （文档的路由地址）</div><div class="line">menu: &apos;前端组件库&apos;</div><div class="line">edit: false</div><div class="line">sidebar: true</div><div class="line">---</div><div class="line">import &#123; Playground &#125; from &apos;docz&apos;;</div><div class="line">import &#123; Form, Table &#125; from &apos;antd&apos;;</div><div class="line">import TableHeader from &apos;./index.tsx&apos;;</div><div class="line"></div><div class="line"># TableHeader</div><div class="line"></div><div class="line">搜索条件嵌入到Table组件</div><div class="line"></div><div class="line">## 代码演示</div><div class="line"></div><div class="line">&lt;Playground&gt;</div><div class="line"></div><div class="line">     &#123;</div><div class="line">        () =&gt; &#123;</div><div class="line"></div><div class="line">            const Demo = (props) =&gt; &#123;</div><div class="line">            const fetchList = () =&gt; &#123;</div><div class="line">                   props.form.validateFields((err, values) =&gt; &#123;</div><div class="line">                            console.log(&apos;err&apos;, err)</div><div class="line">                              console.log(&apos;values&apos;, values)</div><div class="line"></div><div class="line">                   &#125;)</div><div class="line">                &#125;;</div><div class="line">           const columns = [</div><div class="line">             &#123;</div><div class="line">               title: () =&gt; &lt;TableHeader onSearch=&#123;fetchList&#125; form=&#123;props.form&#125; name=&quot;id&quot; title=&quot;id&quot; /&gt;,</div><div class="line">               dataIndex: &apos;id&apos;,</div><div class="line">               key: &apos;id&apos;,</div><div class="line">            &#125;,</div><div class="line">           &#123;</div><div class="line">              title: () =&gt; &lt;TableHeader onSearch=&#123;fetchList&#125; form=&#123;props.form&#125; name=&quot;userName&quot;</div><div class="line">                              title=&quot;userName&quot; /&gt;,</div><div class="line">             dataIndex: &apos;userName&apos;,</div><div class="line">             key: &apos;userName&apos;,</div><div class="line">         &#125;,</div><div class="line">         &#123;</div><div class="line">             title: () =&gt; &lt;TableHeader onSearch=&#123;fetchList&#125; form=&#123;props.form&#125; name=&quot;address&quot;</div><div class="line">                              isNumber title=&quot;address&quot; /&gt;,</div><div class="line">            dataIndex: &apos;address&apos;,</div><div class="line">            key: &apos;address&apos;,</div><div class="line">        &#125;,</div><div class="line">        &#123;</div><div class="line">           title: () =&gt; &lt;TableHeader onSearch=&#123;fetchList&#125; form=&#123;props.form&#125; name=&quot;age&quot; isNumber</div><div class="line">                             title=&quot;age&quot; /&gt;,</div><div class="line">           dataIndex: &apos;age&apos;,</div><div class="line">           key: &apos;age&apos;,</div><div class="line">           width: 100,</div><div class="line">        &#125;,</div><div class="line">        &#123;</div><div class="line">           title: () =&gt; &lt;TableHeader onSearch=&#123;fetchList&#125; form=&#123;props.form&#125; name=&quot;sex&quot; title=&quot;sex&quot;</div><div class="line">                            headerType=&quot;select&quot; options=&#123;[&#123;id: 0, value: &apos;男&apos;&#125;, &#123;id:1, value:&apos;女&apos;&#125;]&#125;  /&gt;,</div><div class="line">           dataIndex: &apos;sex&apos;,</div><div class="line">           key: &apos;sex&apos;,</div><div class="line">           width: 150,</div><div class="line">        &#125;,</div><div class="line">       ];</div><div class="line">      return  (</div><div class="line">           &lt;Table</div><div class="line">             columns=&#123;columns&#125;</div><div class="line">             list=&#123;[]&#125;</div><div class="line">             /&gt;</div><div class="line"></div><div class="line">          )</div><div class="line">     &#125;</div><div class="line">     const FormDemo = Form.create()(Demo)</div><div class="line">          return &lt;FormDemo /&gt;</div><div class="line">        &#125;</div><div class="line">     &#125;</div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line">&lt;/Playground&gt;</div></pre></td></tr></table></figure>
+<ul>
+<li>3.3 在线文件查看</li>
+</ul>
+<p>npm start, Open your browser and visit <a href="http://127.0.0.1:8001" target="_blank" rel="external">http://127.0.0.1:8001</a> , see more at Development，就是一个组件库的介绍网页。</p>
+<h3 id="发布组件"><a href="#发布组件" class="headerlink" title="发布组件"></a>发布组件</h3><p>发布到 npm 的私服，在项目目录下新建.yarnrc</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">registry &quot;http://192.168.3.19:8081/repository/npm-group/&quot;</div></pre></td></tr></table></figure>
+<p>在 package.json 中设置</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&quot;publishConfig&quot;: &#123;</div><div class="line">   &quot;registry&quot;: &quot;http://192.168.3.19:8081/repository/npm-private/&quot;</div><div class="line"> &#125;,</div></pre></td></tr></table></figure>
+<ul>
+<li><p>4.1 进行登录，要求输入用户名和密码，就是 nexus 的密码，可以新建多个用户。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">yarn login --registry http://192.168.3.19:8081/repository/npm-private/</div></pre></td></tr></table></figure>
+</li>
+<li><p>4.2 发布到私服。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">yarn pub --registry http://192.168.3.19:8081/repository/npm-private/</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<h3 id="如何使用组件"><a href="#如何使用组件" class="headerlink" title="如何使用组件"></a>如何使用组件</h3><p>在你使用的项目中新建如果你用 npm 就是.npmrc,如果是 yarn 就是.yarnrc 文件内容分别为<br>.npmrc 文件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">registry=http://192.168.3.19:8081/repository/npm-group/</div><div class="line">disturb=http://192.168.3.19:8081/repository/npm-private/</div></pre></td></tr></table></figure>
+<p>.yarnrc 文件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">registry &quot;http://192.168.3.19:8081/repository/npm-group/&quot;</div></pre></td></tr></table></figure>
+<p>使用 npm login 和 yarn login 登录私服（用户名和密码就是上文说到的 npm 私服）</p>
+<p>然后就可以使用也可以使用 yarn</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">npm i @gogo/app-core --save</div></pre></td></tr></table></figure>
+<h3 id="配合之前的-jenkins"><a href="#配合之前的-jenkins" class="headerlink" title="配合之前的 jenkins"></a>配合之前的 jenkins</h3><p>配合 jenkins，写入一些脚本，实现代码上传之后，自动打包发布组件库和使用文档。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/07/22/react-native的列表使用/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1406,125 +1567,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/10/30/jvm学习/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="GoGo (吴克伟)">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="GoGo's home">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/10/30/jvm学习/" itemprop="url">jvm学习</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-30T22:01:02+08:00">
-                2017-10-30
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1579,7 +1621,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">19</span>
+                  <span class="site-state-item-count">20</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
